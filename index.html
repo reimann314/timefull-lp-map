@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Timefull Capital — LP Intelligence Map</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0b0b0f;
+  --surface: #111117;
+  --surface2: #18181f;
+  --surface3: #1f1f28;
+  --border: rgba(255,255,255,0.065);
+  --border2: rgba(255,255,255,0.1);
+  --gold: #c8a84b;
+  --gold-light: #e8c97a;
+  --gold-dim: rgba(200,168,75,0.13);
+  --gold-border: rgba(200,168,75,0.25);
+  --text: #ede8df;
+  --text-2: #9a9490;
+  --text-3: #5c5860;
+  --sage: #7a9e8e;
+  --blue: #7a9ec4;
+  --rose: #c47a7a;
+  --sidebar: 256px;
+  --panel: 360px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;overflow:hidden;}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  display:flex;
+  font-size:14px;
+}
+
+/* ── SIDEBAR ──────────────────────────────────── */
+.sidebar{
+  width:var(--sidebar);
+  min-width:var(--sidebar);
+  background:var(--surface);
+  border-right:1px solid var(--border);
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+.sb-brand{
+  padding:22px 20px 16px;
+  border-bottom:1px solid var(--border);
+}
+.sb-brand-name{
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.15rem;
+  font-weight:500;
+  color:var(--gold);
+  letter-spacing:0.03em;
+}
+.sb-brand-sub{
+  font-size:0.6rem;
+  text-transform:uppercase;
+  letter-spacing:0.14em;
+  color:var(--text-3);
+  margin-top:3px;
+}
+.sb-stat-big{
+  padding:18px 20px;
+  border-bottom:1px solid var(--border);
+}
+.sb-stat-label{
+  font-size:0.62rem;
+  text-transform:uppercase;
+  letter-spacing:0.1em;
+  color:var(--text-3);
+  margin-bottom:5px;
+}
+.sb-stat-val{
+  font-family:'Cormorant Garamond',serif;
+  font-size:2rem;
+  font-weight:500;
+  color:var(--text);
+  line-height:1;
+}
+.sb-stat-note{
+  font-size:0.67rem;
+  color:var(--text-3);
+  margin-top:3px;
+}
+.sb-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  border-bottom:1px solid var(--border);
+}
+.sb-mini{
+  padding:14px 20px;
+  border-bottom:1px solid var(--border);
+}
+.sb-mini:nth-child(odd){border-right:1px solid var(--border);}
+.sb-mini:nth-last-child(-n+2){border-bottom:none;}
+.sb-mini-label{
+  font-size:0.6rem;
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+  color:var(--text-3);
+  margin-bottom:3px;
+}
+.sb-mini-val{
+  font-size:0.9rem;
+  font-weight:600;
+  color:var(--gold);
+}
+.sb-progress-block{
+  padding:16px 20px;
+  border-bottom:1px solid var(--border);
+}
+.sb-progress-label{
+  display:flex;
+  justify-content:space-between;
+  font-size:0.67rem;
+  color:var(--text-2);
+  margin-bottom:5px;
+}
+.sb-bar{
+  height:2px;
+  background:rgba(255,255,255,0.06);
+  border-radius:2px;
+  margin-bottom:10px;
+}
+.sb-bar-fill{
+  height:100%;
+  background:var(--gold);
+  border-radius:2px;
+  transition:width 0.6s ease;
+}
+.sb-nav{
+  flex:1;
+  overflow-y:auto;
+  padding:10px 0;
+}
+.sb-nav::-webkit-scrollbar{width:3px;}
+.sb-nav::-webkit-scrollbar-thumb{background:var(--surface3);}
+.sb-nav-item{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  padding:7px 20px;
+  cursor:pointer;
+  transition:background 0.12s;
+  border-left:2px solid transparent;
+}
+.sb-nav-item:hover{background:rgba(255,255,255,0.025);}
+.sb-nav-item.active{
+  border-left-color:var(--gold);
+  background:var(--gold-dim);
+}
+.sb-nav-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+.sb-nav-text{font-size:0.7rem;color:var(--text-2);line-height:1.3;flex:1;}
+.sb-nav-item.active .sb-nav-text{color:var(--text);}
+.sb-nav-badge{
+  font-size:0.58rem;
+  color:var(--text-3);
+  background:var(--surface3);
+  padding:1px 5px;
+  border-radius:8px;
+  flex-shrink:0;
+}
+
+/* ── MAIN ─────────────────────────────────────── */
+.main{
+  flex:1;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+.main-topbar{
+  padding:17px 28px;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-shrink:0;
+}
+.main-topbar-left h1{
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.05rem;
+  font-weight:500;
+  color:var(--text);
+}
+.main-topbar-left p{
+  font-size:0.67rem;
+  color:var(--text-3);
+  margin-top:2px;
+}
+.topbar-btn{
+  padding:7px 14px;
+  border:1px solid var(--border2);
+  background:transparent;
+  color:var(--text-2);
+  border-radius:7px;
+  font-size:0.68rem;
+  font-family:'DM Sans',sans-serif;
+  cursor:pointer;
+  transition:all 0.15s;
+  display:flex;
+  align-items:center;
+  gap:5px;
+}
+.topbar-btn:hover{border-color:var(--gold-border);color:var(--gold);}
+.grid-area{
+  flex:1;
+  overflow-y:auto;
+  padding:22px 28px;
+}
+.grid-area::-webkit-scrollbar{width:4px;}
+.grid-area::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:2px;}
+.archetype-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(270px,1fr));
+  gap:14px;
+}
+
+/* ── ARCHETYPE CARD ───────────────────────────── */
+.a-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:11px;
+  padding:18px;
+  cursor:pointer;
+  transition:transform 0.18s,border-color 0.18s,box-shadow 0.18s;
+  position:relative;
+  overflow:hidden;
+  animation:fadeUp 0.35s ease both;
+}
+.a-card::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  border-radius:11px;
+  opacity:0;
+  transition:opacity 0.2s;
+  pointer-events:none;
+}
+.a-card:hover{
+  transform:translateY(-2px);
+  box-shadow:0 10px 28px rgba(0,0,0,0.35);
+}
+.a-card:hover::after{opacity:1;}
+.a-card.active{
+  border-color:var(--gold-border);
+  background:var(--surface2);
+}
+.a-card-accent{
+  position:absolute;
+  top:0;left:0;right:0;
+  height:2px;
+  border-radius:11px 11px 0 0;
+}
+.a-card-top{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  margin-bottom:11px;
+}
+.a-tag{
+  font-size:0.58rem;
+  text-transform:uppercase;
+  letter-spacing:0.1em;
+  padding:2px 8px;
+  border-radius:5px;
+  font-weight:500;
+}
+.a-badge-anchor{
+  font-size:0.58rem;
+  background:var(--gold-dim);
+  color:var(--gold);
+  border:1px solid var(--gold-border);
+  padding:1px 7px;
+  border-radius:5px;
+  font-weight:500;
+}
+.a-badge-priority{
+  font-size:0.58rem;
+  background:rgba(122,158,196,0.12);
+  color:var(--blue);
+  border:1px solid rgba(122,158,196,0.2);
+  padding:1px 7px;
+  border-radius:5px;
+  font-weight:500;
+}
+.a-num{
+  margin-left:auto;
+  font-family:'Cormorant Garamond',serif;
+  font-size:0.78rem;
+  color:var(--text-3);
+}
+.a-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:1rem;
+  font-weight:500;
+  line-height:1.35;
+  color:var(--text);
+  margin-bottom:7px;
+}
+.a-desc{
+  font-size:0.68rem;
+  color:var(--text-2);
+  line-height:1.55;
+  display:-webkit-box;
+  -webkit-line-clamp:3;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+.a-footer{
+  margin-top:14px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.a-lp-label{font-size:0.62rem;color:var(--text-3);}
+.a-avatars{display:flex;}
+.a-avatar{
+  width:20px;height:20px;
+  border-radius:50%;
+  background:var(--gold-dim);
+  border:1.5px solid var(--surface);
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.5rem;font-weight:600;
+  color:var(--gold);
+  margin-left:-4px;
+  flex-shrink:0;
+}
+.a-avatar:first-child{margin-left:0;}
+
+/* ── DETAIL PANEL ────────────────────────────── */
+.panel{
+  width:var(--panel);
+  min-width:var(--panel);
+  background:var(--surface);
+  border-left:1px solid var(--border);
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  transform:translateX(100%);
+  transition:transform 0.28s cubic-bezier(0.4,0,0.2,1);
+  flex-shrink:0;
+}
+.panel.open{transform:translateX(0);}
+.panel-head{
+  padding:20px 22px 16px;
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+.panel-close{
+  float:right;
+  background:none;
+  border:none;
+  color:var(--text-3);
+  font-size:1rem;
+  cursor:pointer;
+  padding:2px 4px;
+  border-radius:4px;
+  transition:color 0.12s;
+  line-height:1;
+  margin-top:-1px;
+}
+.panel-close:hover{color:var(--text);}
+.panel-tag{
+  display:inline-block;
+  font-size:0.58rem;
+  text-transform:uppercase;
+  letter-spacing:0.1em;
+  padding:2px 8px;
+  border-radius:5px;
+  margin-bottom:9px;
+}
+.panel-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.05rem;
+  font-weight:500;
+  line-height:1.4;
+  color:var(--text);
+  margin-bottom:7px;
+}
+.panel-desc{
+  font-size:0.68rem;
+  color:var(--text-2);
+  line-height:1.6;
+}
+.panel-body{
+  flex:1;
+  overflow-y:auto;
+  padding:18px 22px;
+}
+.panel-body::-webkit-scrollbar{width:3px;}
+.panel-body::-webkit-scrollbar-thumb{background:var(--surface3);}
+.panel-sec-title{
+  font-size:0.58rem;
+  text-transform:uppercase;
+  letter-spacing:0.1em;
+  color:var(--text-3);
+  margin-bottom:10px;
+}
+.panel-note{
+  background:var(--gold-dim);
+  border:1px solid var(--gold-border);
+  border-radius:8px;
+  padding:12px 14px;
+  margin-bottom:16px;
+}
+.panel-note-label{
+  font-size:0.58rem;
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+  color:var(--gold);
+  margin-bottom:4px;
+}
+.panel-note-text{
+  font-size:0.68rem;
+  color:var(--text-2);
+  line-height:1.55;
+}
+
+/* ── LP LIST ──────────────────────────────────── */
+.lp-list{display:flex;flex-direction:column;gap:7px;margin-bottom:16px;}
+.lp-item{
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:10px 12px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.lp-avatar{
+  width:30px;height:30px;
+  border-radius:50%;
+  background:var(--gold-dim);
+  border:1px solid var(--gold-border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.65rem;font-weight:600;
+  color:var(--gold);
+  flex-shrink:0;
+}
+.lp-info{flex:1;min-width:0;}
+.lp-name{
+  font-size:0.75rem;font-weight:500;
+  color:var(--text);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.lp-sub{
+  font-size:0.62rem;color:var(--text-3);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  margin-top:1px;
+}
+.lp-status-dot{
+  width:6px;height:6px;
+  border-radius:50%;
+  flex-shrink:0;
+}
+.lp-del{
+  background:none;border:none;
+  color:var(--text-3);
+  cursor:pointer;
+  font-size:0.7rem;
+  padding:3px 4px;
+  border-radius:4px;
+  transition:all 0.12s;
+  line-height:1;
+}
+.lp-del:hover{color:var(--rose);background:rgba(196,122,122,0.1);}
+.lp-empty{
+  text-align:center;
+  padding:20px 0;
+  font-size:0.68rem;
+  color:var(--text-3);
+}
+
+/* ── ADD FORM ─────────────────────────────────── */
+.add-form{
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:9px;
+  padding:14px;
+}
+.add-form-title{
+  font-size:0.62rem;
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+  color:var(--text-2);
+  margin-bottom:10px;
+  font-weight:500;
+}
+.form-input,.form-select{
+  width:100%;
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:7px;
+  padding:8px 10px;
+  font-size:0.72rem;
+  font-family:'DM Sans',sans-serif;
+  color:var(--text);
+  outline:none;
+  transition:border-color 0.14s;
+  margin-bottom:7px;
+}
+.form-input:focus,.form-select:focus{border-color:var(--gold-border);}
+.form-input::placeholder{color:var(--text-3);}
+.form-select option{background:var(--surface2);color:var(--text);}
+.form-select{cursor:pointer;}
+.add-btn{
+  width:100%;
+  padding:9px;
+  background:var(--gold);
+  color:#0b0b0f;
+  border:none;
+  border-radius:7px;
+  font-size:0.72rem;
+  font-weight:600;
+  font-family:'DM Sans',sans-serif;
+  cursor:pointer;
+  transition:background 0.14s;
+  margin-top:2px;
+}
+.add-btn:hover{background:var(--gold-light);}
+
+/* ── STATUS TOOLTIP ─────────────────────────────── */
+.status-legend{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom:14px;
+}
+.status-pill{
+  display:flex;
+  align-items:center;
+  gap:4px;
+  font-size:0.6rem;
+  color:var(--text-3);
+}
+.status-dot{width:5px;height:5px;border-radius:50%;}
+
+/* ── ANIMATIONS ──────────────────────────────── */
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(10px);}
+  to{opacity:1;transform:translateY(0);}
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sb-brand">
+    <div class="sb-brand-name">Timefull Capital</div>
+    <div class="sb-brand-sub">LP Intelligence · Fund I</div>
+  </div>
+
+  <div class="sb-stat-big">
+    <div class="sb-stat-label">Fund Target</div>
+    <div class="sb-stat-val">$5M</div>
+    <div class="sb-stat-note">First close · $2.5M</div>
+  </div>
+
+  <div class="sb-grid">
+    <div class="sb-mini">
+      <div class="sb-mini-label">Stage</div>
+      <div class="sb-mini-val">Pre-Seed</div>
+    </div>
+    <div class="sb-mini">
+      <div class="sb-mini-label">Check</div>
+      <div class="sb-mini-val">$150-200K</div>
+    </div>
+    <div class="sb-mini">
+      <div class="sb-mini-label">Portfolio</div>
+      <div class="sb-mini-val">20–25 cos</div>
+    </div>
+    <div class="sb-mini">
+      <div class="sb-mini-label">Carry / Fee</div>
+      <div class="sb-mini-val">20% / 2%</div>
+    </div>
+  </div>
+
+  <div class="sb-progress-block">
+    <div class="sb-progress-label">
+      <span>LPs tracked</span>
+      <span id="stat-lps">0</span>
+    </div>
+    <div class="sb-bar"><div class="sb-bar-fill" id="bar-lps" style="width:0%"></div></div>
+    <div class="sb-progress-label">
+      <span>Archetypes engaged</span>
+      <span id="stat-engaged">0 / 11</span>
+    </div>
+    <div class="sb-bar"><div class="sb-bar-fill" id="bar-engaged" style="width:0%"></div></div>
+  </div>
+
+  <div class="sb-nav" id="sb-nav"></div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="main-topbar">
+    <div class="main-topbar-left">
+      <h1>LP Archetype Map</h1>
+      <p>Click any archetype to manage contacts and pipeline</p>
+    </div>
+    <button class="topbar-btn" onclick="exportJSON()">↓ Export JSON</button>
+  </div>
+  <div class="grid-area">
+    <div class="archetype-grid" id="grid"></div>
+  </div>
+</main>
+
+<!-- DETAIL PANEL -->
+<div class="panel" id="panel">
+  <div class="panel-head">
+    <button class="panel-close" onclick="closePanel()">✕</button>
+    <div class="panel-tag" id="p-tag"></div>
+    <div class="panel-title" id="p-title"></div>
+    <div class="panel-desc" id="p-desc"></div>
+  </div>
+  <div class="panel-body">
+    <div id="p-note"></div>
+    <div class="panel-sec-title">Pipeline Status</div>
+    <div class="status-legend">
+      <div class="status-pill"><div class="status-dot" style="background:#5c5860"></div>Prospect</div>
+      <div class="status-pill"><div class="status-dot" style="background:#7a9ec4"></div>Outreach</div>
+      <div class="status-pill"><div class="status-dot" style="background:#c8a84b"></div>Meeting</div>
+      <div class="status-pill"><div class="status-dot" style="background:#7ac4a0"></div>Committed</div>
+      <div class="status-pill"><div class="status-dot" style="background:#c47a7a"></div>Passed</div>
+    </div>
+    <div class="panel-sec-title">LP Contacts</div>
+    <div class="lp-list" id="lp-list"></div>
+    <div class="add-form">
+      <div class="add-form-title">+ Add LP Contact</div>
+      <input class="form-input" id="f-name" placeholder="Full name *" />
+      <input class="form-input" id="f-org" placeholder="Organization / Fund" />
+      <input class="form-input" id="f-contact" placeholder="Email or LinkedIn URL" />
+      <select class="form-select" id="f-status">
+        <option value="prospect">Prospect</option>
+        <option value="outreach">Outreach Sent</option>
+        <option value="meeting">Meeting Scheduled</option>
+        <option value="committed">Committed</option>
+        <option value="passed">Passed</option>
+      </select>
+      <button class="add-btn" onclick="addLP()">Add to Archetype</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const ARCHETYPES=[
+  {id:1,title:"Gender-Lens & Inclusive Capitalism LPs",cat:"Impact",color:"#c47a7a",colorDim:"rgba(196,122,122,0.11)",priority:"anchor",
+  desc:"HNW individuals, family offices, and foundations actively allocating to close the gender funding gap. They see the 1% of VC to female-only founding teams as a structural mispricing of alpha — not a social argument. Motivated by lower entry valuations, less competition, and higher potential multiples. ESG, impact, and thematic mandates align tightly.",
+  note:null},
+  {id:2,title:"Latino / LatinX Diaspora Capital",cat:"Diaspora",color:"#c8a84b",colorDim:"rgba(200,168,75,0.11)",priority:"high",
+  desc:"US-based family offices and accredited individuals with Latin American roots seeking exposure to the LatAm-to-US immigrant founder corridor. They resonate with the GP's Peruvian-born, bilingual, bicultural identity and her network spanning Startup Mexico, Pacific Alliance, and the broader diaspora. They fund access to talent that monolingual investors never see.",
+  note:null},
+  {id:3,title:"Emerging Manager Programmatic Allocators",cat:"Institutional",color:"#7a9ec4",colorDim:"rgba(122,158,196,0.11)",priority:"high",
+  desc:"Fund-of-funds, OCIOs, and LP platforms purpose-built to back first- and second-time managers — Cendana, Sapphire Partners, Weathergage, Allocate, AngelList Access Fund. They underwrite sharp theses, authentic founder-market fit, and niche dominance. The $5M Fund I size and a clear path to Fund II on early markups matches their criteria.",
+  note:null},
+  {id:4,title:"AI-Native Tech Family Offices",cat:"Family Office",color:"#9e7ac4",colorDim:"rgba(158,122,196,0.11)",priority:"high",
+  desc:"Multi-generational family offices operated by principals who were early into software, cloud, or crypto. They understand the AI-native shift: 10–12x revenue per employee, compressed time-to-scale. They want pure-play pre-seed AI exposure before the growth curve inflects, and appreciate cap efficiency that implies cleaner cap tables and faster DPI potential.",
+  note:null},
+  {id:5,title:"Women Decision-Maker Networks & CIOs",cat:"Networks",color:"#c47a9e",colorDim:"rgba(196,122,158,0.11)",priority:"anchor",
+  desc:"Female-led foundations, family offices with women CIOs, and investment collectives — Golden Seeds, SoGal Foundation LPs, Next Wave Impact. They back female GPs building differentiated track records. The GP's career arc — CRISPR co-founder, Miss Universe Latina Peru, angel investor, Draper EIR — creates powerful rapport. They fund the person as much as the thesis.",
+  note:null},
+  {id:6,title:"Creator Economy & Sports-Connected Investors",cat:"Creator",color:"#c4a07a",colorDim:"rgba(196,160,122,0.11)",priority:null,
+  desc:"Athletes, entertainment figures, creator-led family offices, and media executives who made wealth in the attention economy. They want ownership in AI-native tooling that powers the next decade of creator monetization. The GP's direct creator ecosystem access — Miss Universe Latina, triathlete, angel in Ceremonia and Jaclyn Johnson — gives conviction she sources where VCs don't.",
+  note:null},
+  {id:7,title:"Digital Health & Biotech-Adjacent LPs",cat:"Health",color:"#7ac4a0",colorDim:"rgba(122,196,160,0.11)",priority:null,
+  desc:"Physicians, healthcare executives, and pharma-adjacent angels who understand that AI-native health and wellness is a generational opportunity. The GP's biotech background — CRISPR startup co-founder at NASA Ames, UC Berkeley life sciences, Pisa Pharmaceutical leadership launching 78 products — signals deep domain fluency in pre-seed health AI.",
+  note:null},
+  {id:8,title:"Survivor-Turned-Investor Operator LPs",cat:"Operators",color:"#a0c47a",colorDim:"rgba(160,196,122,0.11)",priority:null,
+  desc:"Second-time founders, exited solo operators, and angel investors who value scar tissue. They invest in GPs who have lived startup failure, rebuilt, and trained 100+ founders to become seed-ready. The Ceremonia track record and the honest story of taking cash over equity at Eden demonstrate pattern recognition forged by loss, not theory.",
+  note:null},
+  {id:9,title:"DPI-Liquidity Focused Family Offices",cat:"Family Office",color:"#7ac4c4",colorDim:"rgba(122,196,196,0.11)",priority:null,
+  desc:"HNW families frustrated by the 5–7 year wait for distributions. Only ~50% of VC funds have any DPI after 5 years. AI-native capital efficiency and 2–3 year scale cycles structurally compress the timeline to potential secondary sales or acquisitions — the fund's explicit focus on AI-native pre-seed is a structural answer to VC's liquidity problem.",
+  note:null},
+  {id:10,title:"Draper Ecosystem & Singularity University Insiders",cat:"Network",color:"#c8a84b",colorDim:"rgba(200,168,75,0.13)",priority:"anchor",
+  desc:"Alumni, mentors, and co-investors within the Tim Draper venture universe and Singularity University's global network. The GP delivered the first profitable Draper University cohort in 4 years with a 250% profitability increase and holds a Singularity University Google Scholarship at NASA Ames. They invest to deepen network-sourced deal flow and support a proven insider.",
+  note:"Highest-conviction anchor LPs for a first close. The GP is a known, proven entity inside this network — the shared experience eliminates the diligence discount applied to unknown first-time managers. Their capital is purpose-built for contrarian, early-stage conviction bets backed by people they have seen perform in asymmetric, high-pressure environments. Starting here turns the fund from a pitch deck into a funded vehicle."},
+  {id:11,title:"LatAm Cross-Border High-Net-Worth Investors",cat:"Diaspora",color:"#c4847a",colorDim:"rgba(196,132,122,0.11)",priority:null,
+  desc:"Wealth creators in Peru, Mexico, Colombia, and Chile seeking US venture exposure with a cultural bridge. Previously limited to local ecosystems or opaque foreign VC allocations. The GP's bicultural identity, native Spanish fluency, and deal flow from immigrant founders maintaining cross-border networks give them a transparent, trusted entry point into top-decile US pre-seed AI.",
+  note:null}
+];
+
+const STATUS={
+  prospect:{color:"#5c5860",label:"Prospect"},
+  outreach:{color:"#7a9ec4",label:"Outreach"},
+  meeting:{color:"#c8a84b",label:"Meeting"},
+  committed:{color:"#7ac4a0",label:"Committed"},
+  passed:{color:"#c47a7a",label:"Passed"}
+};
+
+let lpData={};
+let activeId=null;
+
+function load(){
+  try{const s=localStorage.getItem('tc_lps');if(s)lpData=JSON.parse(s);}catch(e){}
+}
+function save(){
+  try{localStorage.setItem('tc_lps',JSON.stringify(lpData));}catch(e){}
+  updateStats();
+}
+function getLPs(id){return lpData[id]||[];}
+
+function updateStats(){
+  const total=Object.values(lpData).reduce((s,a)=>s+a.length,0);
+  const engaged=Object.keys(lpData).filter(k=>lpData[k]&&lpData[k].length>0).length;
+  document.getElementById('stat-lps').textContent=total;
+  document.getElementById('stat-engaged').textContent=engaged+' / 11';
+  document.getElementById('bar-lps').style.width=Math.min(total/40*100,100)+'%';
+  document.getElementById('bar-engaged').style.width=(engaged/11*100)+'%';
+  ARCHETYPES.forEach(a=>{
+    const n=getLPs(a.id).length;
+    const badge=document.getElementById('nav-badge-'+a.id);
+    if(badge)badge.textContent=n||'';
+    const lbl=document.getElementById('card-lbl-'+a.id);
+    if(lbl)lbl.textContent=n?n+' LP'+(n>1?'s':'')+' tracked':'No LPs added';
+    const avs=document.getElementById('card-avs-'+a.id);
+    if(avs){
+      const lps=getLPs(a.id).slice(0,3);
+      avs.innerHTML=lps.map(l=>`<div class="a-avatar">${l.name.charAt(0).toUpperCase()}</div>`).join('');
+    }
+  });
+}
+
+function renderNav(){
+  document.getElementById('sb-nav').innerHTML=ARCHETYPES.map(a=>`
+    <div class="sb-nav-item" id="nav-${a.id}" onclick="openArchetype(${a.id})">
+      <div class="sb-nav-dot" style="background:${a.color}"></div>
+      <div class="sb-nav-text">${a.title}</div>
+      <div class="sb-nav-badge" id="nav-badge-${a.id}"></div>
+    </div>
+  `).join('');
+}
+
+function renderGrid(){
+  document.getElementById('grid').innerHTML=ARCHETYPES.map((a,i)=>`
+    <div class="a-card" id="card-${a.id}" onclick="openArchetype(${a.id})" style="animation-delay:${i*0.035}s">
+      <div class="a-card-accent" style="background:${a.color}40"></div>
+      <div class="a-card-top">
+        <div class="a-tag" style="background:${a.colorDim};color:${a.color}">${a.cat}</div>
+        ${a.priority==='anchor'?'<div class="a-badge-anchor">★ Anchor LP</div>':''}
+        ${a.priority==='high'?'<div class="a-badge-priority">Priority</div>':''}
+        <div class="a-num">${String(a.id).padStart(2,'0')}</div>
+      </div>
+      <div class="a-title">${a.title}</div>
+      <div class="a-desc">${a.desc}</div>
+      <div class="a-footer">
+        <div class="a-lp-label" id="card-lbl-${a.id}">No LPs added</div>
+        <div class="a-avatars" id="card-avs-${a.id}"></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openArchetype(id){
+  activeId=id;
+  const a=ARCHETYPES.find(x=>x.id===id);
+  document.querySelectorAll('.a-card,.sb-nav-item').forEach(el=>el.classList.remove('active'));
+  document.getElementById('card-'+id).classList.add('active');
+  document.getElementById('nav-'+id).classList.add('active');
+  const tag=document.getElementById('p-tag');
+  tag.textContent=a.cat;
+  tag.style.cssText=`background:${a.colorDim};color:${a.color};display:inline-block;font-size:.58rem;text-transform:uppercase;letter-spacing:.1em;padding:2px 8px;border-radius:5px;margin-bottom:9px;`;
+  document.getElementById('p-title').textContent=a.title;
+  document.getElementById('p-desc').textContent=a.desc;
+  const noteEl=document.getElementById('p-note');
+  noteEl.innerHTML=a.note?`
+    <div class="panel-note">
+      <div class="panel-note-label">Strategic Note</div>
+      <div class="panel-note-text">${a.note}</div>
+    </div>`:'';
+  renderLPList(id);
+  document.getElementById('panel').classList.add('open');
+}
+
+function renderLPList(id){
+  const lps=getLPs(id);
+  const el=document.getElementById('lp-list');
+  if(!lps.length){
+    el.innerHTML='<div class="lp-empty">No LP contacts yet.<br>Add your first below.</div>';
+    return;
+  }
+  el.innerHTML=lps.map((lp,i)=>`
+    <div class="lp-item">
+      <div class="lp-avatar">${lp.name.charAt(0).toUpperCase()}</div>
+      <div class="lp-info">
+        <div class="lp-name">${lp.name}${lp.org?' · '+lp.org:''}</div>
+        <div class="lp-sub">${lp.contact||STATUS[lp.status].label}</div>
+      </div>
+      <div class="lp-status-dot" title="${STATUS[lp.status].label}" style="background:${STATUS[lp.status].color}"></div>
+      <button class="lp-del" onclick="delLP(${id},${i})" title="Remove">✕</button>
+    </div>
+  `).join('');
+}
+
+function addLP(){
+  if(!activeId)return;
+  const name=document.getElementById('f-name').value.trim();
+  if(!name){document.getElementById('f-name').focus();return;}
+  if(!lpData[activeId])lpData[activeId]=[];
+  lpData[activeId].push({
+    name,
+    org:document.getElementById('f-org').value.trim(),
+    contact:document.getElementById('f-contact').value.trim(),
+    status:document.getElementById('f-status').value,
+    added:new Date().toISOString()
+  });
+  save();
+  ['f-name','f-org','f-contact'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-status').value='prospect';
+  renderLPList(activeId);
+}
+
+function delLP(archetypeId,idx){
+  lpData[archetypeId].splice(idx,1);
+  save();
+  renderLPList(archetypeId);
+}
+
+function closePanel(){
+  document.getElementById('panel').classList.remove('open');
+  document.querySelectorAll('.a-card,.sb-nav-item').forEach(el=>el.classList.remove('active'));
+  activeId=null;
+}
+
+function exportJSON(){
+  const out={fund:'Timefull Capital Fund I',gp:'Angelica Carrillo',exported:new Date().toISOString(),lps:{}};
+  ARCHETYPES.forEach(a=>{const l=getLPs(a.id);if(l.length)out.lps[a.title]=l;});
+  const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const link=document.createElement('a');
+  link.href=url;link.download='timefull-lps.json';link.click();
+  URL.revokeObjectURL(url);
+}
+
+load();renderNav();renderGrid();updateStats();
+</script>
+</body>
+</html>
