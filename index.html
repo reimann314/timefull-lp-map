@@ -7,6 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Supabase Library -->
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   
   <script>
@@ -17,16 +18,16 @@
           colors: {
             // BRIGHT THEME PALETTE
             tf: {
-              bg: '#f8fafc', // Light background
-              panel: '#ffffff', // White panel
-              card: '#f1f5f9', // Light gray card
-              border: '#e2e8f0', // Light border
-              accent: '#22c55e', // Green accent
-              accent2: '#0ea5e9', // Blue accent
-              muted: '#64748b', // Muted gray
+              bg: '#f8fafc',
+              panel: '#ffffff',
+              card: '#f1f5f9',
+              border: '#e2e8f0',
+              accent: '#22c55e',
+              accent2: '#0ea5e9',
+              muted: '#64748b',
               danger: '#ef4444',
               warning: '#f59e0b',
-              text: '#1e293b' // Darker text for contrast
+              text: '#1e293b'
             }
           }
         }
@@ -163,7 +164,7 @@
         </div>
       </div>
       <div class="flex items-center gap-3">
-        <span class="text-xs text-tf-muted" id="totalArchetypes">20 Archetypes</span>
+        <span class="text-xs text-tf-muted" id="totalArchetypes">0 Archetypes</span>
         <button onclick="openMetricsModal()" class="text-xs px-3 py-1.5 rounded-lg border border-tf-border hover:bg-tf-card text-tf-muted transition-colors">Edit Metrics</button>
       </div>
     </header>
@@ -322,16 +323,17 @@
 
   <script>
     // ─── SUPABASE INITIALIZATION ───
-    // REPLACE WITH YOUR ACTUAL SUPABASE URL AND ANON KEY
     const SUPABASE_URL = 'https://okdsmjxblllyefbqnqatk.supabase.co'; 
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9rZHNtanhibGx5ZWZicW5xYXRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgzMzYxMzQsImV4cCI6MjA5MzkxMjEzNH0.Q0FDGEYe-lowAqTd0_vdBqb9xxuCrb7DipUE4pWWjiY'; 
-    const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    
+    // BUG FIX 1: Use the lowercase `supabase` object provided by the CDN link
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // ─── DATA ───
     let archetypes = [];
     let metrics = {};
-    let contacts = {}; // Store contacts organized by archetypeId
-    let notes = {}; // Store notes organized by archetypeId
+    let contacts = {}; 
+    let notes = {}; 
 
     // ─── STATE ───
     let currentView = 'grid';
@@ -347,7 +349,7 @@
       renderMap();
       updateDashboard();
       setupSearch();
-      setupSupabaseRealtime(); // Setup real-time listeners
+      setupSupabaseRealtime();
       if (window.innerWidth >= 768 && isSidebarOpen) {
         toggleSidebar();
       }
@@ -355,30 +357,20 @@
 
     // ─── SUPABASE DATA LOADING ───
     async function loadInitialData() {
-        // Load Archetypes
-        const { data: archetypesData, error: archetypesError } = await supabase
-            .from('archetypes')
-            .select('*');
+        const { data: archetypesData, error: archetypesError } = await db.from('archetypes').select('*');
         if (archetypesError) { console.error('Error loading archetypes:', archetypesError); }
         else { archetypes = archetypesData; }
 
-        // Load Metrics
-        const { data: metricsData, error: metricsError } = await supabase
-            .from('metrics')
-            .select('*')
-            .single(); // Assuming only one row for metrics
-        if (metricsError && metricsError.code !== 'PGRST116') { // PGRST116 means no row found
+        const { data: metricsData, error: metricsError } = await db.from('metrics').select('*').single(); 
+        if (metricsError && metricsError.code !== 'PGRST116') { 
             console.error('Error loading metrics:', metricsError);
         } else {
             metrics = metricsData || { target: 5000000, firstClose: 2500000, committed: 0 };
         }
 
-        // Load Contacts
-        const { data: contactsData, error: contactsError } = await supabase
-            .from('contacts')
-            .select('*');
+        const { data: contactsData, error: contactsError } = await db.from('contacts').select('*');
         if (contactsError) { console.error('Error loading contacts:', contactsError); }
-        else {
+        else if (contactsData) {
             contacts = contactsData.reduce((acc, contact) => {
                 if (!acc[contact.archetypeId]) acc[contact.archetypeId] = [];
                 acc[contact.archetypeId].push(contact);
@@ -386,12 +378,9 @@
             }, {});
         }
 
-        // Load Notes
-        const { data: notesData, error: notesError } = await supabase
-            .from('notes')
-            .select('*');
+        const { data: notesData, error: notesError } = await db.from('notes').select('*');
         if (notesError) { console.error('Error loading notes:', notesError); }
-        else {
+        else if (notesData) {
             notes = notesData.reduce((acc, note) => {
                 acc[note.archetypeId] = note.content;
                 return acc;
@@ -401,10 +390,8 @@
 
     // ─── SUPABASE REALTIME SUBSCRIPTIONS ───
     function setupSupabaseRealtime() {
-        supabase
-            .channel('public:archetypes')
+        db.channel('public:archetypes')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'archetypes' }, payload => {
-                console.log('Archetype change received!', payload);
                 if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
                     const index = archetypes.findIndex(a => a.id === payload.new.id);
                     if (index > -1) archetypes[index] = payload.new;
@@ -417,32 +404,25 @@
             })
             .subscribe();
 
-        supabase
-            .channel('public:metrics')
+        db.channel('public:metrics')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'metrics' }, payload => {
-                console.log('Metrics change received!', payload);
                 metrics = payload.new;
                 updateDashboard();
             })
             .subscribe();
         
-        supabase
-            .channel('public:contacts')
+        db.channel('public:contacts')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'contacts' }, payload => {
-                console.log('Contact change received!', payload);
-                // Re-fetch all contacts for simplicity in this example
                 loadInitialData().then(() => {
                     if (currentArchetypeId) renderContacts(currentArchetypeId);
                     updateDashboard();
-                    if (currentView === 'grid') renderGrid(); // Update grid for contact counts
+                    if (currentView === 'grid') renderGrid(); 
                 });
             })
             .subscribe();
 
-        supabase
-            .channel('public:notes')
+        db.channel('public:notes')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'notes' }, payload => {
-                console.log('Notes change received!', payload);
                 if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
                     notes[payload.new.archetypeId] = payload.new.content;
                 } else if (payload.eventType === 'DELETE') {
@@ -479,6 +459,11 @@
         const highCount = contactList.filter(c => c.priority === 'High').length;
         const statusColor = committedCount > 0 ? 'bg-tf-accent/20 text-tf-accent border-tf-accent/30' : highCount > 0 ? 'bg-tf-warning/20 text-tf-warning border-tf-warning/30' : 'bg-tf-card text-tf-muted border-tf-border';
         
+        // Safety check for tags array in case it comes from Supabase as a string or null
+        let tagsArray = [];
+        if (Array.isArray(a.tags)) { tagsArray = a.tags; }
+        else if (typeof a.tags === 'string') { tagsArray = a.tags.replace(/^{|}$/g, '').split(',').map(s => s.replace(/^"|"$/g, '').trim()); }
+
         return `
         <div onclick="openArchetype('${a.id}')" class="group glass rounded-xl p-5 cursor-pointer hover:border-tf-accent/50 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden ${a.anchor ? 'ring-1 ring-tf-accent/40 anchor-glow' : ''}">
           ${a.anchor ? '<div class="absolute top-0 right-0 bg-tf-accent text-tf-bg text-[10px] font-bold px-2 py-1 rounded-bl-lg">ANCHOR LP</div>' : ''}
@@ -488,7 +473,7 @@
           <h3 class="text-base font-semibold text-tf-text mb-2 group-hover:text-tf-accent transition-colors line-clamp-2">${a.title}</h3>
           <p class="text-xs text-tf-muted line-clamp-3 mb-3 leading-relaxed">${a.desc}</p>
           <div class="flex flex-wrap gap-1.5">
-            ${a.tags.map(t => `<span class="text-[10px] px-1.5 py-0.5 rounded bg-tf-card border border-tf-border text-tf-muted">${t}</span>`).join('')}
+            ${tagsArray.map(t => `<span class="text-[10px] px-1.5 py-0.5 rounded bg-tf-card border border-tf-border text-tf-muted">${t}</span>`).join('')}
           </div>
         </div>`;
       }).join('');
@@ -505,11 +490,9 @@
       const centerX = width / 2;
       const centerY = height / 2;
       
-      // Clear previous nodes and lines
       svg.innerHTML = '';
       container.innerHTML = '';
 
-      // Add center node for FUND I
       container.innerHTML += `
         <div id="center-node" class="absolute transform -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer" style="left:${centerX}px;top:${centerY}px" onclick="openArchetype('ds-10')">
           <div class="w-16 h-16 rounded-full bg-tf-accent flex items-center justify-center text-tf-bg font-bold text-xs shadow-lg shadow-tf-accent/20 anchor-glow">FUND I</div>
@@ -517,15 +500,13 @@
         </div>
       `;
 
-      // Assign random initial positions or use saved positions
       archetypes.forEach(a => {
-          if (!a.x || !a.y) { // If no saved position, randomize
+          if (!a.x || !a.y) { 
               a.x = Math.random() * width;
               a.y = Math.random() * height;
           }
       });
 
-      // Render archetypes as draggable nodes
       archetypes.forEach(n => {
         const contactList = contacts[n.id] || [];
         const hasCommitted = contactList.some(c => c.status === 'Committed' || c.status === 'Closed');
@@ -537,7 +518,7 @@
         nodeDiv.style.top = `${n.y}px`;
         nodeDiv.dataset.archetypeId = n.id;
         nodeDiv.onclick = (e) => {
-            if (!nodeDiv.classList.contains('dragging')) { // Only open if not dragging
+            if (!nodeDiv.classList.contains('dragging')) { 
                 openArchetype(n.id);
             }
         };
@@ -551,29 +532,29 @@
         container.appendChild(nodeDiv);
       });
 
-      // Draw lines after all nodes are in place
-      drawMapLines(nodes, centerX, centerY);
+      // BUG FIX 2: Correctly pass 'archetypes' to drawMapLines instead of the deleted 'nodes' variable
+      drawMapLines(archetypes, centerX, centerY);
       makeNodesDraggable();
     }
 
-    function drawMapLines(nodes, centerX, centerY) {
+    function drawMapLines(nodesArray, centerX, centerY) {
         const svg = document.getElementById('constellationSvg');
-        svg.innerHTML = ''; // Clear existing lines
-        nodes.forEach(n => {
+        svg.innerHTML = ''; 
+        nodesArray.forEach(n => {
             const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
             line.setAttribute('x1', centerX);
             line.setAttribute('y1', centerY);
             line.setAttribute('x2', n.x);
             line.setAttribute('y2', n.y);
             line.classList.add(n.anchor ? 'node-active' : 'node-line');
-            line.dataset.archetypeId = n.id; // Associate line with archetype
+            line.dataset.archetypeId = n.id;
             svg.appendChild(line);
         });
     }
 
     // ─── DRAGGABLE NODES ───
     function makeNodesDraggable() {
-        const nodes = document.querySelectorAll('.archetype-node');
+        const nodesList = document.querySelectorAll('.archetype-node');
         let active = false;
         let currentX;
         let currentY;
@@ -582,10 +563,10 @@
         let xOffset = 0;
         let yOffset = 0;
 
-        nodes.forEach(node => {
-            node.addEventListener('touchstart', dragStart, false);
+        nodesList.forEach(node => {
+            node.addEventListener('touchstart', dragStart, {passive: false});
             node.addEventListener('touchend', dragEnd, false);
-            node.addEventListener('touchmove', drag, false);
+            node.addEventListener('touchmove', drag, {passive: false});
 
             node.addEventListener('mousedown', dragStart, false);
             node.addEventListener('mouseup', dragEnd, false);
@@ -604,29 +585,23 @@
             if (e.target.closest('.archetype-node')) {
                 dragNode = e.target.closest('.archetype-node');
                 active = true;
-                dragNode.classList.add('dragging'); // Add dragging class
+                dragNode.classList.add('dragging'); 
             }
         }
 
         async function dragEnd(e) {
             if (dragNode) {
                 active = false;
-                dragNode.classList.remove('dragging'); // Remove dragging class
+                dragNode.classList.remove('dragging'); 
 
                 const archetypeId = dragNode.dataset.archetypeId;
                 const archetype = archetypes.find(a => a.id === archetypeId);
 
-                if (archetype) {
-                    // Update archetype's position in our local array
+                if (archetype && currentX !== undefined && currentY !== undefined) {
                     archetype.x = currentX;
                     archetype.y = currentY;
 
-                    // Update position in Supabase
-                    const { data, error } = await supabase
-                        .from('archetypes')
-                        .update({ x: currentX, y: currentY })
-                        .eq('id', archetypeId);
-                    
+                    const { error } = await db.from('archetypes').update({ x: currentX, y: currentY }).eq('id', archetypeId);
                     if (error) console.error('Error saving node position:', error);
                 }
             }
@@ -653,22 +628,15 @@
                 dragNode.style.left = currentX + 'px';
                 dragNode.style.top = currentY + 'px';
 
-                // Update lines in real-time
                 const archetypeId = dragNode.dataset.archetypeId;
                 const line = document.querySelector(`#constellationSvg line[data-archetype-id="${archetypeId}"]`);
                 if (line) {
-                    const svg = document.getElementById('constellationSvg');
-                    const width = svg.offsetWidth;
-                    const height = svg.offsetHeight;
-                    const centerX = width / 2;
-                    const centerY = height / 2;
                     line.setAttribute('x2', currentX);
                     line.setAttribute('y2', currentY);
                 }
             }
         }
     }
-
 
     // ─── FILTERING ───
     function getFilteredArchetypes() {
@@ -728,7 +696,7 @@
     function openArchetype(id) {
       currentArchetypeId = id;
       const a = archetypes.find(x => x.id === id);
-      if (!a) { console.error('Archetype not found:', id); return; } // Add check
+      if (!a) return;
 
       document.getElementById('modalTitle').textContent = a.title;
       document.getElementById('modalDesc').textContent = a.desc;
@@ -740,7 +708,7 @@
       const panel = document.getElementById('modalPanel');
       modal.classList.remove('hidden');
       setTimeout(() => panel.classList.remove('translate-x-full'), 10);
-      if (window.innerWidth < 768 && isSidebarOpen) { // Close sidebar on mobile when opening a modal
+      if (window.innerWidth < 768 && isSidebarOpen) {
         toggleSidebar();
       }
     }
@@ -749,7 +717,7 @@
       const panel = document.getElementById('modalPanel');
       panel.classList.add('translate-x-full');
       setTimeout(() => document.getElementById('archetypeModal').classList.add('hidden'), 300);
-      currentArchetypeId = null; // Clear current archetype ID
+      currentArchetypeId = null;
     }
 
     // ─── CONTACTS ───
@@ -800,13 +768,13 @@
       document.getElementById('contactModalTitle').textContent = 'Add Contact';
       document.getElementById('contactForm').reset();
       document.getElementById('contactId').value = '';
-      document.getElementById('contactArchetypeId').value = currentArchetypeId; // Set archetype ID for new contact
+      document.getElementById('contactArchetypeId').value = currentArchetypeId; 
       document.getElementById('contactModal').classList.remove('hidden');
     }
 
     function editContact(contactId) {
-      const c = Object.values(contacts).flat().find(contact => contact.id === contactId); // Find contact globally
-      if (!c) { console.error('Contact not found:', contactId); return; }
+      const c = Object.values(contacts).flat().find(contact => contact.id == contactId); 
+      if (!c) return;
 
       document.getElementById('contactModalTitle').textContent = 'Edit Contact';
       document.getElementById('contactId').value = c.id;
@@ -838,28 +806,20 @@
         priority: document.getElementById('cPriority').value,
         linkedin: document.getElementById('cLinkedin').value,
         notes: document.getElementById('cNotes').value,
-        archetypeId: archetypeId // Ensure archetypeId is included
+        archetypeId: archetypeId 
       };
 
       let error;
       if (contactId) {
-        // Update existing contact
-        ({ error } = await supabase
-          .from('contacts')
-          .update(contactData)
-          .eq('id', contactId));
+        ({ error } = await db.from('contacts').update(contactData).eq('id', contactId));
       } else {
-        // Insert new contact
-        ({ error } = await supabase
-          .from('contacts')
-          .insert([contactData]));
+        ({ error } = await db.from('contacts').insert([contactData]));
       }
 
       if (error) {
         console.error('Error saving contact:', error);
         alert('Failed to save contact. Please try again.');
       } else {
-        // Realtime should handle updates, but we can re-render for immediate feedback
         await loadInitialData();
         renderContacts(currentArchetypeId);
         updateDashboard();
@@ -871,16 +831,12 @@
     async function deleteContact(contactId) {
       if (!confirm('Delete this contact?')) return;
       
-      const { error } = await supabase
-        .from('contacts')
-        .delete()
-        .eq('id', contactId);
+      const { error } = await db.from('contacts').delete().eq('id', contactId);
 
       if (error) {
         console.error('Error deleting contact:', error);
         alert('Failed to delete contact. Please try again.');
       } else {
-        // Realtime should handle updates, but we can re-render for immediate feedback
         await loadInitialData();
         renderContacts(currentArchetypeId);
         updateDashboard();
@@ -896,37 +852,15 @@
       const archetypeId = currentArchetypeId;
       const content = document.getElementById('archetypeNotes').value;
 
-      // Check if note exists for this archetype
-      const { data: existingNote, error: fetchError } = await supabase
-          .from('notes')
-          .select('id')
-          .eq('archetypeId', archetypeId)
-          .single();
+      const { data: existingNote, error: fetchError } = await db.from('notes').select('id').eq('archetypeId', archetypeId).single();
 
-      if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 means no row found
-          console.error('Error checking existing note:', fetchError);
-          return;
-      }
+      if (fetchError && fetchError.code !== 'PGRST116') return;
 
       let error;
       if (existingNote) {
-          // Update existing note
-          ({ error } = await supabase
-              .from('notes')
-              .update({ content: content })
-              .eq('id', existingNote.id));
+          ({ error } = await db.from('notes').update({ content: content }).eq('id', existingNote.id));
       } else {
-          // Insert new note
-          ({ error } = await supabase
-              .from('notes')
-              .insert([{ archetypeId: archetypeId, content: content }]));
-      }
-
-      if (error) {
-          console.error('Error saving notes:', error);
-          alert('Failed to save notes. Please try again.');
-      } else {
-          // Realtime should handle updates
+          ({ error } = await db.from('notes').insert([{ archetypeId: archetypeId, content: content }]));
       }
     }
 
@@ -953,9 +887,7 @@
       document.getElementById('mFirst').value = metrics.firstClose;
       document.getElementById('mCommitted').value = metrics.committed;
       document.getElementById('metricsModal').classList.remove('hidden');
-      if (window.innerWidth < 768 && isSidebarOpen) {
-        toggleSidebar();
-      }
+      if (window.innerWidth < 768 && isSidebarOpen) toggleSidebar();
     }
 
     async function saveMetrics(e) {
@@ -966,128 +898,30 @@
         committed: parseInt(document.getElementById('mCommitted').value) || 0
       };
 
-      // Check if metrics table has a row (assuming single row)
-      const { data: existingMetrics, error: fetchError } = await supabase
-          .from('metrics')
-          .select('id')
-          .single();
+      const { data: existingMetrics, error: fetchError } = await db.from('metrics').select('id').single();
 
-      if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 means no row found
-          console.error('Error checking existing metrics:', fetchError);
-          return;
-      }
+      if (fetchError && fetchError.code !== 'PGRST116') return;
 
       let error;
       if (existingMetrics) {
-          // Update existing metrics (assuming ID 1 for single row)
-          ({ error } = await supabase
-              .from('metrics')
-              .update(updatedMetrics)
-              .eq('id', existingMetrics.id));
+          ({ error } = await db.from('metrics').update(updatedMetrics).eq('id', existingMetrics.id));
       } else {
-          // Insert new metrics
-          ({ error } = await supabase
-              .from('metrics')
-              .insert([updatedMetrics]));
+          ({ error } = await db.from('metrics').insert([updatedMetrics]));
       }
 
-      if (error) {
-        console.error('Error saving metrics:', error);
-        alert('Failed to save metrics. Please try again.');
-      } else {
-        // Realtime should handle updates
-        closeMetricsModal();
-      }
+      if (!error) closeMetricsModal();
     }
 
     function closeMetricsModal() {
       document.getElementById('metricsModal').classList.add('hidden');
     }
 
-    // ─── EXPORT / IMPORT (Local Backup) ───
-    function exportData() {
-      const data = { metrics, contacts, notes, archetypes, exportedAt: new Date().toISOString() };
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `timefull-lp-map-backup-${new Date().toISOString().split('T')[0]}.json`;
-      a.click();
-    }
-
-    async function importData(input) {
-      const file = input.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        try {
-          const data = JSON.parse(e.target.result);
-          
-          // Clear current Supabase data (optional, depends on import strategy)
-          // For simplicity, we'll just insert/upsert new data.
-          // In a real app, you might want to confirm if the user wants to overwrite.
-          
-          // Import Metrics
-          const { data: existingMetrics, error: fetchMetricsError } = await supabase.from('metrics').select('id').single();
-          if (fetchMetricsError && fetchMetricsError.code !== 'PGRST116') console.error('Error checking metrics for import:', fetchMetricsError);
-          
-          if (data.metrics) {
-              if (existingMetrics) {
-                  await supabase.from('metrics').update(data.metrics).eq('id', existingMetrics.id);
-              } else {
-                  await supabase.from('metrics').insert([data.metrics]);
-              }
-          }
-
-          // Import Archetypes (upsert to handle existing IDs)
-          if (data.archetypes && data.archetypes.length > 0) {
-              const { error: archetypeUpsertError } = await supabase.from('archetypes').upsert(data.archetypes, { onConflict: 'id' });
-              if (archetypeUpsertError) console.error('Error upserting archetypes:', archetypeUpsertError);
-          }
-
-          // Import Contacts (delete all and re-insert or upsert)
-          if (data.contacts) {
-              // Flatten contacts object to an array for Supabase insertion
-              const contactsToInsert = Object.values(data.contacts).flat();
-              // For simplicity, we'll delete all existing and insert new ones
-              await supabase.from('contacts').delete().neq('id', '0'); // Delete all contacts
-              if (contactsToInsert.length > 0) {
-                const { error: contactInsertError } = await supabase.from('contacts').insert(contactsToInsert);
-                if (contactInsertError) console.error('Error inserting contacts:', contactInsertError);
-              }
-          }
-
-          // Import Notes (delete all and re-insert or upsert)
-          if (data.notes) {
-              const notesToInsert = Object.keys(data.notes).map(archetypeId => ({ archetypeId, content: data.notes[archetypeId] }));
-              await supabase.from('notes').delete().neq('id', '0'); // Delete all notes
-              if (notesToInsert.length > 0) {
-                const { error: notesInsertError } = await supabase.from('notes').insert(notesToInsert);
-                if (notesInsertError) console.error('Error inserting notes:', notesInsertError);
-              }
-          }
-          
-          await loadInitialData();
-          renderGrid();
-          renderMap();
-          updateDashboard();
-          alert('Backup restored successfully and data uploaded to Supabase.');
-        } catch (err) {
-          console.error('Import error:', err);
-          alert('Invalid backup file or import failed.');
-        }
-      };
-      reader.readAsText(file);
-      input.value = '';
-    }
-
     // ─── START ───
     window.addEventListener('resize', () => { 
       if (currentView === 'map') renderMap(); 
-      if (window.innerWidth >= 768 && isSidebarOpen) {
-        toggleSidebar();
-      }
+      if (window.innerWidth >= 768 && isSidebarOpen) toggleSidebar();
     });
+    
     init();
   </script>
 </body>
