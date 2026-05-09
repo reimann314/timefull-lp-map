@@ -1,844 +1,814 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Timefull Capital — LP Intelligence Map</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
-<style>
-:root {
-  --bg: #0b0b0f;
-  --surface: #111117;
-  --surface2: #18181f;
-  --surface3: #1f1f28;
-  --border: rgba(255,255,255,0.065);
-  --border2: rgba(255,255,255,0.1);
-  --gold: #c8a84b;
-  --gold-light: #e8c97a;
-  --gold-dim: rgba(200,168,75,0.13);
-  --gold-border: rgba(200,168,75,0.25);
-  --text: #ede8df;
-  --text-2: #9a9490;
-  --text-3: #5c5860;
-  --sage: #7a9e8e;
-  --blue: #7a9ec4;
-  --rose: #c47a7a;
-  --sidebar: 256px;
-  --panel: 360px;
-}
-*{margin:0;padding:0;box-sizing:border-box;}
-html,body{height:100%;overflow:hidden;}
-body{
-  font-family:'DM Sans',sans-serif;
-  background:var(--bg);
-  color:var(--text);
-  display:flex;
-  font-size:14px;
-}
-
-/* ── SIDEBAR ──────────────────────────────────── */
-.sidebar{
-  width:var(--sidebar);
-  min-width:var(--sidebar);
-  background:var(--surface);
-  border-right:1px solid var(--border);
-  display:flex;
-  flex-direction:column;
-  overflow:hidden;
-}
-.sb-brand{
-  padding:22px 20px 16px;
-  border-bottom:1px solid var(--border);
-}
-.sb-brand-name{
-  font-family:'Cormorant Garamond',serif;
-  font-size:1.15rem;
-  font-weight:500;
-  color:var(--gold);
-  letter-spacing:0.03em;
-}
-.sb-brand-sub{
-  font-size:0.6rem;
-  text-transform:uppercase;
-  letter-spacing:0.14em;
-  color:var(--text-3);
-  margin-top:3px;
-}
-.sb-stat-big{
-  padding:18px 20px;
-  border-bottom:1px solid var(--border);
-}
-.sb-stat-label{
-  font-size:0.62rem;
-  text-transform:uppercase;
-  letter-spacing:0.1em;
-  color:var(--text-3);
-  margin-bottom:5px;
-}
-.sb-stat-val{
-  font-family:'Cormorant Garamond',serif;
-  font-size:2rem;
-  font-weight:500;
-  color:var(--text);
-  line-height:1;
-}
-.sb-stat-note{
-  font-size:0.67rem;
-  color:var(--text-3);
-  margin-top:3px;
-}
-.sb-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  border-bottom:1px solid var(--border);
-}
-.sb-mini{
-  padding:14px 20px;
-  border-bottom:1px solid var(--border);
-}
-.sb-mini:nth-child(odd){border-right:1px solid var(--border);}
-.sb-mini:nth-last-child(-n+2){border-bottom:none;}
-.sb-mini-label{
-  font-size:0.6rem;
-  text-transform:uppercase;
-  letter-spacing:0.08em;
-  color:var(--text-3);
-  margin-bottom:3px;
-}
-.sb-mini-val{
-  font-size:0.9rem;
-  font-weight:600;
-  color:var(--gold);
-}
-.sb-progress-block{
-  padding:16px 20px;
-  border-bottom:1px solid var(--border);
-}
-.sb-progress-label{
-  display:flex;
-  justify-content:space-between;
-  font-size:0.67rem;
-  color:var(--text-2);
-  margin-bottom:5px;
-}
-.sb-bar{
-  height:2px;
-  background:rgba(255,255,255,0.06);
-  border-radius:2px;
-  margin-bottom:10px;
-}
-.sb-bar-fill{
-  height:100%;
-  background:var(--gold);
-  border-radius:2px;
-  transition:width 0.6s ease;
-}
-.sb-nav{
-  flex:1;
-  overflow-y:auto;
-  padding:10px 0;
-}
-.sb-nav::-webkit-scrollbar{width:3px;}
-.sb-nav::-webkit-scrollbar-thumb{background:var(--surface3);}
-.sb-nav-item{
-  display:flex;
-  align-items:center;
-  gap:9px;
-  padding:7px 20px;
-  cursor:pointer;
-  transition:background 0.12s;
-  border-left:2px solid transparent;
-}
-.sb-nav-item:hover{background:rgba(255,255,255,0.025);}
-.sb-nav-item.active{
-  border-left-color:var(--gold);
-  background:var(--gold-dim);
-}
-.sb-nav-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
-.sb-nav-text{font-size:0.7rem;color:var(--text-2);line-height:1.3;flex:1;}
-.sb-nav-item.active .sb-nav-text{color:var(--text);}
-.sb-nav-badge{
-  font-size:0.58rem;
-  color:var(--text-3);
-  background:var(--surface3);
-  padding:1px 5px;
-  border-radius:8px;
-  flex-shrink:0;
-}
-
-/* ── MAIN ─────────────────────────────────────── */
-.main{
-  flex:1;
-  min-width:0;
-  display:flex;
-  flex-direction:column;
-  overflow:hidden;
-}
-.main-topbar{
-  padding:17px 28px;
-  border-bottom:1px solid var(--border);
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  flex-shrink:0;
-}
-.main-topbar-left h1{
-  font-family:'Cormorant Garamond',serif;
-  font-size:1.05rem;
-  font-weight:500;
-  color:var(--text);
-}
-.main-topbar-left p{
-  font-size:0.67rem;
-  color:var(--text-3);
-  margin-top:2px;
-}
-.topbar-btn{
-  padding:7px 14px;
-  border:1px solid var(--border2);
-  background:transparent;
-  color:var(--text-2);
-  border-radius:7px;
-  font-size:0.68rem;
-  font-family:'DM Sans',sans-serif;
-  cursor:pointer;
-  transition:all 0.15s;
-  display:flex;
-  align-items:center;
-  gap:5px;
-}
-.topbar-btn:hover{border-color:var(--gold-border);color:var(--gold);}
-.grid-area{
-  flex:1;
-  overflow-y:auto;
-  padding:22px 28px;
-}
-.grid-area::-webkit-scrollbar{width:4px;}
-.grid-area::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:2px;}
-.archetype-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(270px,1fr));
-  gap:14px;
-}
-
-/* ── ARCHETYPE CARD ───────────────────────────── */
-.a-card{
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:11px;
-  padding:18px;
-  cursor:pointer;
-  transition:transform 0.18s,border-color 0.18s,box-shadow 0.18s;
-  position:relative;
-  overflow:hidden;
-  animation:fadeUp 0.35s ease both;
-}
-.a-card::after{
-  content:'';
-  position:absolute;
-  inset:0;
-  border-radius:11px;
-  opacity:0;
-  transition:opacity 0.2s;
-  pointer-events:none;
-}
-.a-card:hover{
-  transform:translateY(-2px);
-  box-shadow:0 10px 28px rgba(0,0,0,0.35);
-}
-.a-card:hover::after{opacity:1;}
-.a-card.active{
-  border-color:var(--gold-border);
-  background:var(--surface2);
-}
-.a-card-accent{
-  position:absolute;
-  top:0;left:0;right:0;
-  height:2px;
-  border-radius:11px 11px 0 0;
-}
-.a-card-top{
-  display:flex;
-  align-items:center;
-  gap:7px;
-  margin-bottom:11px;
-}
-.a-tag{
-  font-size:0.58rem;
-  text-transform:uppercase;
-  letter-spacing:0.1em;
-  padding:2px 8px;
-  border-radius:5px;
-  font-weight:500;
-}
-.a-badge-anchor{
-  font-size:0.58rem;
-  background:var(--gold-dim);
-  color:var(--gold);
-  border:1px solid var(--gold-border);
-  padding:1px 7px;
-  border-radius:5px;
-  font-weight:500;
-}
-.a-badge-priority{
-  font-size:0.58rem;
-  background:rgba(122,158,196,0.12);
-  color:var(--blue);
-  border:1px solid rgba(122,158,196,0.2);
-  padding:1px 7px;
-  border-radius:5px;
-  font-weight:500;
-}
-.a-num{
-  margin-left:auto;
-  font-family:'Cormorant Garamond',serif;
-  font-size:0.78rem;
-  color:var(--text-3);
-}
-.a-title{
-  font-family:'Cormorant Garamond',serif;
-  font-size:1rem;
-  font-weight:500;
-  line-height:1.35;
-  color:var(--text);
-  margin-bottom:7px;
-}
-.a-desc{
-  font-size:0.68rem;
-  color:var(--text-2);
-  line-height:1.55;
-  display:-webkit-box;
-  -webkit-line-clamp:3;
-  -webkit-box-orient:vertical;
-  overflow:hidden;
-}
-.a-footer{
-  margin-top:14px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-}
-.a-lp-label{font-size:0.62rem;color:var(--text-3);}
-.a-avatars{display:flex;}
-.a-avatar{
-  width:20px;height:20px;
-  border-radius:50%;
-  background:var(--gold-dim);
-  border:1.5px solid var(--surface);
-  display:flex;align-items:center;justify-content:center;
-  font-size:0.5rem;font-weight:600;
-  color:var(--gold);
-  margin-left:-4px;
-  flex-shrink:0;
-}
-.a-avatar:first-child{margin-left:0;}
-
-/* ── DETAIL PANEL ────────────────────────────── */
-.panel{
-  width:var(--panel);
-  min-width:var(--panel);
-  background:var(--surface);
-  border-left:1px solid var(--border);
-  display:flex;
-  flex-direction:column;
-  overflow:hidden;
-  transform:translateX(100%);
-  transition:transform 0.28s cubic-bezier(0.4,0,0.2,1);
-  flex-shrink:0;
-}
-.panel.open{transform:translateX(0);}
-.panel-head{
-  padding:20px 22px 16px;
-  border-bottom:1px solid var(--border);
-  flex-shrink:0;
-}
-.panel-close{
-  float:right;
-  background:none;
-  border:none;
-  color:var(--text-3);
-  font-size:1rem;
-  cursor:pointer;
-  padding:2px 4px;
-  border-radius:4px;
-  transition:color 0.12s;
-  line-height:1;
-  margin-top:-1px;
-}
-.panel-close:hover{color:var(--text);}
-.panel-tag{
-  display:inline-block;
-  font-size:0.58rem;
-  text-transform:uppercase;
-  letter-spacing:0.1em;
-  padding:2px 8px;
-  border-radius:5px;
-  margin-bottom:9px;
-}
-.panel-title{
-  font-family:'Cormorant Garamond',serif;
-  font-size:1.05rem;
-  font-weight:500;
-  line-height:1.4;
-  color:var(--text);
-  margin-bottom:7px;
-}
-.panel-desc{
-  font-size:0.68rem;
-  color:var(--text-2);
-  line-height:1.6;
-}
-.panel-body{
-  flex:1;
-  overflow-y:auto;
-  padding:18px 22px;
-}
-.panel-body::-webkit-scrollbar{width:3px;}
-.panel-body::-webkit-scrollbar-thumb{background:var(--surface3);}
-.panel-sec-title{
-  font-size:0.58rem;
-  text-transform:uppercase;
-  letter-spacing:0.1em;
-  color:var(--text-3);
-  margin-bottom:10px;
-}
-.panel-note{
-  background:var(--gold-dim);
-  border:1px solid var(--gold-border);
-  border-radius:8px;
-  padding:12px 14px;
-  margin-bottom:16px;
-}
-.panel-note-label{
-  font-size:0.58rem;
-  text-transform:uppercase;
-  letter-spacing:0.08em;
-  color:var(--gold);
-  margin-bottom:4px;
-}
-.panel-note-text{
-  font-size:0.68rem;
-  color:var(--text-2);
-  line-height:1.55;
-}
-
-/* ── LP LIST ──────────────────────────────────── */
-.lp-list{display:flex;flex-direction:column;gap:7px;margin-bottom:16px;}
-.lp-item{
-  background:var(--surface2);
-  border:1px solid var(--border);
-  border-radius:8px;
-  padding:10px 12px;
-  display:flex;
-  align-items:center;
-  gap:10px;
-}
-.lp-avatar{
-  width:30px;height:30px;
-  border-radius:50%;
-  background:var(--gold-dim);
-  border:1px solid var(--gold-border);
-  display:flex;align-items:center;justify-content:center;
-  font-size:0.65rem;font-weight:600;
-  color:var(--gold);
-  flex-shrink:0;
-}
-.lp-info{flex:1;min-width:0;}
-.lp-name{
-  font-size:0.75rem;font-weight:500;
-  color:var(--text);
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-}
-.lp-sub{
-  font-size:0.62rem;color:var(--text-3);
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  margin-top:1px;
-}
-.lp-status-dot{
-  width:6px;height:6px;
-  border-radius:50%;
-  flex-shrink:0;
-}
-.lp-del{
-  background:none;border:none;
-  color:var(--text-3);
-  cursor:pointer;
-  font-size:0.7rem;
-  padding:3px 4px;
-  border-radius:4px;
-  transition:all 0.12s;
-  line-height:1;
-}
-.lp-del:hover{color:var(--rose);background:rgba(196,122,122,0.1);}
-.lp-empty{
-  text-align:center;
-  padding:20px 0;
-  font-size:0.68rem;
-  color:var(--text-3);
-}
-
-/* ── ADD FORM ─────────────────────────────────── */
-.add-form{
-  background:var(--surface2);
-  border:1px solid var(--border);
-  border-radius:9px;
-  padding:14px;
-}
-.add-form-title{
-  font-size:0.62rem;
-  text-transform:uppercase;
-  letter-spacing:0.08em;
-  color:var(--text-2);
-  margin-bottom:10px;
-  font-weight:500;
-}
-.form-input,.form-select{
-  width:100%;
-  background:var(--bg);
-  border:1px solid var(--border);
-  border-radius:7px;
-  padding:8px 10px;
-  font-size:0.72rem;
-  font-family:'DM Sans',sans-serif;
-  color:var(--text);
-  outline:none;
-  transition:border-color 0.14s;
-  margin-bottom:7px;
-}
-.form-input:focus,.form-select:focus{border-color:var(--gold-border);}
-.form-input::placeholder{color:var(--text-3);}
-.form-select option{background:var(--surface2);color:var(--text);}
-.form-select{cursor:pointer;}
-.add-btn{
-  width:100%;
-  padding:9px;
-  background:var(--gold);
-  color:#0b0b0f;
-  border:none;
-  border-radius:7px;
-  font-size:0.72rem;
-  font-weight:600;
-  font-family:'DM Sans',sans-serif;
-  cursor:pointer;
-  transition:background 0.14s;
-  margin-top:2px;
-}
-.add-btn:hover{background:var(--gold-light);}
-
-/* ── STATUS TOOLTIP ─────────────────────────────── */
-.status-legend{
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-  margin-bottom:14px;
-}
-.status-pill{
-  display:flex;
-  align-items:center;
-  gap:4px;
-  font-size:0.6rem;
-  color:var(--text-3);
-}
-.status-dot{width:5px;height:5px;border-radius:50%;}
-
-/* ── ANIMATIONS ──────────────────────────────── */
-@keyframes fadeUp{
-  from{opacity:0;transform:translateY(10px);}
-  to{opacity:1;transform:translateY(0);}
-}
-</style>
-</head>
-<body>
-
-<!-- SIDEBAR -->
-<aside class="sidebar">
-  <div class="sb-brand">
-    <div class="sb-brand-name">Timefull Capital</div>
-    <div class="sb-brand-sub">LP Intelligence · Fund I</div>
-  </div>
-
-  <div class="sb-stat-big">
-    <div class="sb-stat-label">Fund Target</div>
-    <div class="sb-stat-val">$5M</div>
-    <div class="sb-stat-note">First close · $2.5M</div>
-  </div>
-
-  <div class="sb-grid">
-    <div class="sb-mini">
-      <div class="sb-mini-label">Stage</div>
-      <div class="sb-mini-val">Pre-Seed</div>
-    </div>
-    <div class="sb-mini">
-      <div class="sb-mini-label">Check</div>
-      <div class="sb-mini-val">$150-200K</div>
-    </div>
-    <div class="sb-mini">
-      <div class="sb-mini-label">Portfolio</div>
-      <div class="sb-mini-val">20–25 cos</div>
-    </div>
-    <div class="sb-mini">
-      <div class="sb-mini-label">Carry / Fee</div>
-      <div class="sb-mini-val">20% / 2%</div>
-    </div>
-  </div>
-
-  <div class="sb-progress-block">
-    <div class="sb-progress-label">
-      <span>LPs tracked</span>
-      <span id="stat-lps">0</span>
-    </div>
-    <div class="sb-bar"><div class="sb-bar-fill" id="bar-lps" style="width:0%"></div></div>
-    <div class="sb-progress-label">
-      <span>Archetypes engaged</span>
-      <span id="stat-engaged">0 / 11</span>
-    </div>
-    <div class="sb-bar"><div class="sb-bar-fill" id="bar-engaged" style="width:0%"></div></div>
-  </div>
-
-  <div class="sb-nav" id="sb-nav"></div>
-</aside>
-
-<!-- MAIN -->
-<main class="main">
-  <div class="main-topbar">
-    <div class="main-topbar-left">
-      <h1>LP Archetype Map</h1>
-      <p>Click any archetype to manage contacts and pipeline</p>
-    </div>
-    <button class="topbar-btn" onclick="exportJSON()">↓ Export JSON</button>
-  </div>
-  <div class="grid-area">
-    <div class="archetype-grid" id="grid"></div>
-  </div>
-</main>
-
-<!-- DETAIL PANEL -->
-<div class="panel" id="panel">
-  <div class="panel-head">
-    <button class="panel-close" onclick="closePanel()">✕</button>
-    <div class="panel-tag" id="p-tag"></div>
-    <div class="panel-title" id="p-title"></div>
-    <div class="panel-desc" id="p-desc"></div>
-  </div>
-  <div class="panel-body">
-    <div id="p-note"></div>
-    <div class="panel-sec-title">Pipeline Status</div>
-    <div class="status-legend">
-      <div class="status-pill"><div class="status-dot" style="background:#5c5860"></div>Prospect</div>
-      <div class="status-pill"><div class="status-dot" style="background:#7a9ec4"></div>Outreach</div>
-      <div class="status-pill"><div class="status-dot" style="background:#c8a84b"></div>Meeting</div>
-      <div class="status-pill"><div class="status-dot" style="background:#7ac4a0"></div>Committed</div>
-      <div class="status-pill"><div class="status-dot" style="background:#c47a7a"></div>Passed</div>
-    </div>
-    <div class="panel-sec-title">LP Contacts</div>
-    <div class="lp-list" id="lp-list"></div>
-    <div class="add-form">
-      <div class="add-form-title">+ Add LP Contact</div>
-      <input class="form-input" id="f-name" placeholder="Full name *" />
-      <input class="form-input" id="f-org" placeholder="Organization / Fund" />
-      <input class="form-input" id="f-contact" placeholder="Email or LinkedIn URL" />
-      <select class="form-select" id="f-status">
-        <option value="prospect">Prospect</option>
-        <option value="outreach">Outreach Sent</option>
-        <option value="meeting">Meeting Scheduled</option>
-        <option value="committed">Committed</option>
-        <option value="passed">Passed</option>
-      </select>
-      <button class="add-btn" onclick="addLP()">Add to Archetype</button>
-    </div>
-  </div>
-</div>
-
-<script>
-const ARCHETYPES=[
-  {id:1,title:"Gender-Lens & Inclusive Capitalism LPs",cat:"Impact",color:"#c47a7a",colorDim:"rgba(196,122,122,0.11)",priority:"anchor",
-  desc:"HNW individuals, family offices, and foundations actively allocating to close the gender funding gap. They see the 1% of VC to female-only founding teams as a structural mispricing of alpha — not a social argument. Motivated by lower entry valuations, less competition, and higher potential multiples. ESG, impact, and thematic mandates align tightly.",
-  note:null},
-  {id:2,title:"Latino / LatinX Diaspora Capital",cat:"Diaspora",color:"#c8a84b",colorDim:"rgba(200,168,75,0.11)",priority:"high",
-  desc:"US-based family offices and accredited individuals with Latin American roots seeking exposure to the LatAm-to-US immigrant founder corridor. They resonate with the GP's Peruvian-born, bilingual, bicultural identity and her network spanning Startup Mexico, Pacific Alliance, and the broader diaspora. They fund access to talent that monolingual investors never see.",
-  note:null},
-  {id:3,title:"Emerging Manager Programmatic Allocators",cat:"Institutional",color:"#7a9ec4",colorDim:"rgba(122,158,196,0.11)",priority:"high",
-  desc:"Fund-of-funds, OCIOs, and LP platforms purpose-built to back first- and second-time managers — Cendana, Sapphire Partners, Weathergage, Allocate, AngelList Access Fund. They underwrite sharp theses, authentic founder-market fit, and niche dominance. The $5M Fund I size and a clear path to Fund II on early markups matches their criteria.",
-  note:null},
-  {id:4,title:"AI-Native Tech Family Offices",cat:"Family Office",color:"#9e7ac4",colorDim:"rgba(158,122,196,0.11)",priority:"high",
-  desc:"Multi-generational family offices operated by principals who were early into software, cloud, or crypto. They understand the AI-native shift: 10–12x revenue per employee, compressed time-to-scale. They want pure-play pre-seed AI exposure before the growth curve inflects, and appreciate cap efficiency that implies cleaner cap tables and faster DPI potential.",
-  note:null},
-  {id:5,title:"Women Decision-Maker Networks & CIOs",cat:"Networks",color:"#c47a9e",colorDim:"rgba(196,122,158,0.11)",priority:"anchor",
-  desc:"Female-led foundations, family offices with women CIOs, and investment collectives — Golden Seeds, SoGal Foundation LPs, Next Wave Impact. They back female GPs building differentiated track records. The GP's career arc — CRISPR co-founder, Miss Universe Latina Peru, angel investor, Draper EIR — creates powerful rapport. They fund the person as much as the thesis.",
-  note:null},
-  {id:6,title:"Creator Economy & Sports-Connected Investors",cat:"Creator",color:"#c4a07a",colorDim:"rgba(196,160,122,0.11)",priority:null,
-  desc:"Athletes, entertainment figures, creator-led family offices, and media executives who made wealth in the attention economy. They want ownership in AI-native tooling that powers the next decade of creator monetization. The GP's direct creator ecosystem access — Miss Universe Latina, triathlete, angel in Ceremonia and Jaclyn Johnson — gives conviction she sources where VCs don't.",
-  note:null},
-  {id:7,title:"Digital Health & Biotech-Adjacent LPs",cat:"Health",color:"#7ac4a0",colorDim:"rgba(122,196,160,0.11)",priority:null,
-  desc:"Physicians, healthcare executives, and pharma-adjacent angels who understand that AI-native health and wellness is a generational opportunity. The GP's biotech background — CRISPR startup co-founder at NASA Ames, UC Berkeley life sciences, Pisa Pharmaceutical leadership launching 78 products — signals deep domain fluency in pre-seed health AI.",
-  note:null},
-  {id:8,title:"Survivor-Turned-Investor Operator LPs",cat:"Operators",color:"#a0c47a",colorDim:"rgba(160,196,122,0.11)",priority:null,
-  desc:"Second-time founders, exited solo operators, and angel investors who value scar tissue. They invest in GPs who have lived startup failure, rebuilt, and trained 100+ founders to become seed-ready. The Ceremonia track record and the honest story of taking cash over equity at Eden demonstrate pattern recognition forged by loss, not theory.",
-  note:null},
-  {id:9,title:"DPI-Liquidity Focused Family Offices",cat:"Family Office",color:"#7ac4c4",colorDim:"rgba(122,196,196,0.11)",priority:null,
-  desc:"HNW families frustrated by the 5–7 year wait for distributions. Only ~50% of VC funds have any DPI after 5 years. AI-native capital efficiency and 2–3 year scale cycles structurally compress the timeline to potential secondary sales or acquisitions — the fund's explicit focus on AI-native pre-seed is a structural answer to VC's liquidity problem.",
-  note:null},
-  {id:10,title:"Draper Ecosystem & Singularity University Insiders",cat:"Network",color:"#c8a84b",colorDim:"rgba(200,168,75,0.13)",priority:"anchor",
-  desc:"Alumni, mentors, and co-investors within the Tim Draper venture universe and Singularity University's global network. The GP delivered the first profitable Draper University cohort in 4 years with a 250% profitability increase and holds a Singularity University Google Scholarship at NASA Ames. They invest to deepen network-sourced deal flow and support a proven insider.",
-  note:"Highest-conviction anchor LPs for a first close. The GP is a known, proven entity inside this network — the shared experience eliminates the diligence discount applied to unknown first-time managers. Their capital is purpose-built for contrarian, early-stage conviction bets backed by people they have seen perform in asymmetric, high-pressure environments. Starting here turns the fund from a pitch deck into a funded vehicle."},
-  {id:11,title:"LatAm Cross-Border High-Net-Worth Investors",cat:"Diaspora",color:"#c4847a",colorDim:"rgba(196,132,122,0.11)",priority:null,
-  desc:"Wealth creators in Peru, Mexico, Colombia, and Chile seeking US venture exposure with a cultural bridge. Previously limited to local ecosystems or opaque foreign VC allocations. The GP's bicultural identity, native Spanish fluency, and deal flow from immigrant founders maintaining cross-border networks give them a transparent, trusted entry point into top-decile US pre-seed AI.",
-  note:null}
-];
-
-const STATUS={
-  prospect:{color:"#5c5860",label:"Prospect"},
-  outreach:{color:"#7a9ec4",label:"Outreach"},
-  meeting:{color:"#c8a84b",label:"Meeting"},
-  committed:{color:"#7ac4a0",label:"Committed"},
-  passed:{color:"#c47a7a",label:"Passed"}
-};
-
-let lpData={};
-let activeId=null;
-
-function load(){
-  try{const s=localStorage.getItem('tc_lps');if(s)lpData=JSON.parse(s);}catch(e){}
-}
-function save(){
-  try{localStorage.setItem('tc_lps',JSON.stringify(lpData));}catch(e){}
-  updateStats();
-}
-function getLPs(id){return lpData[id]||[];}
-
-function updateStats(){
-  const total=Object.values(lpData).reduce((s,a)=>s+a.length,0);
-  const engaged=Object.keys(lpData).filter(k=>lpData[k]&&lpData[k].length>0).length;
-  document.getElementById('stat-lps').textContent=total;
-  document.getElementById('stat-engaged').textContent=engaged+' / 11';
-  document.getElementById('bar-lps').style.width=Math.min(total/40*100,100)+'%';
-  document.getElementById('bar-engaged').style.width=(engaged/11*100)+'%';
-  ARCHETYPES.forEach(a=>{
-    const n=getLPs(a.id).length;
-    const badge=document.getElementById('nav-badge-'+a.id);
-    if(badge)badge.textContent=n||'';
-    const lbl=document.getElementById('card-lbl-'+a.id);
-    if(lbl)lbl.textContent=n?n+' LP'+(n>1?'s':'')+' tracked':'No LPs added';
-    const avs=document.getElementById('card-avs-'+a.id);
-    if(avs){
-      const lps=getLPs(a.id).slice(0,3);
-      avs.innerHTML=lps.map(l=>`<div class="a-avatar">${l.name.charAt(0).toUpperCase()}</div>`).join('');
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Timefull Capital | LP Archetype Map</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: {
+            tf: {
+              bg: '#020617',
+              panel: '#0f172a',
+              card: '#1e293b',
+              border: '#334155',
+              accent: '#10b981',
+              accent2: '#14b8a6',
+              muted: '#94a3b8',
+              danger: '#ef4444',
+              warning: '#f59e0b'
+            }
+          }
+        }
+      }
     }
-  });
-}
+  </script>
+  <style>
+    body { background: #020617; color: #f8fafc; }
+    .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.5); }
+    .node-line { stroke: #334155; stroke-width: 1.5; opacity: 0.4; }
+    .node-active { stroke: #10b981; stroke-width: 2; opacity: 0.8; }
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+      50% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+    }
+    .anchor-glow { animation: pulse-glow 3s infinite; }
+    .fade-in { animation: fadeIn 0.3s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body class="font-sans antialiased h-screen overflow-hidden flex">
 
-function renderNav(){
-  document.getElementById('sb-nav').innerHTML=ARCHETYPES.map(a=>`
-    <div class="sb-nav-item" id="nav-${a.id}" onclick="openArchetype(${a.id})">
-      <div class="sb-nav-dot" style="background:${a.color}"></div>
-      <div class="sb-nav-text">${a.title}</div>
-      <div class="sb-nav-badge" id="nav-badge-${a.id}"></div>
-    </div>
-  `).join('');
-}
-
-function renderGrid(){
-  document.getElementById('grid').innerHTML=ARCHETYPES.map((a,i)=>`
-    <div class="a-card" id="card-${a.id}" onclick="openArchetype(${a.id})" style="animation-delay:${i*0.035}s">
-      <div class="a-card-accent" style="background:${a.color}40"></div>
-      <div class="a-card-top">
-        <div class="a-tag" style="background:${a.colorDim};color:${a.color}">${a.cat}</div>
-        ${a.priority==='anchor'?'<div class="a-badge-anchor">★ Anchor LP</div>':''}
-        ${a.priority==='high'?'<div class="a-badge-priority">Priority</div>':''}
-        <div class="a-num">${String(a.id).padStart(2,'0')}</div>
+  <!-- SIDEBAR DASHBOARD -->
+  <aside class="w-80 bg-tf-panel border-r border-tf-border flex flex-col h-full shrink-0 z-20">
+    <div class="p-6 border-b border-tf-border">
+      <div class="flex items-center gap-3 mb-1">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-tf-accent to-tf-accent2 flex items-center justify-center text-tf-bg font-bold text-sm">T</div>
+        <h1 class="text-lg font-bold tracking-tight">Timefull Capital</h1>
       </div>
-      <div class="a-title">${a.title}</div>
-      <div class="a-desc">${a.desc}</div>
-      <div class="a-footer">
-        <div class="a-lp-label" id="card-lbl-${a.id}">No LPs added</div>
-        <div class="a-avatars" id="card-avs-${a.id}"></div>
+      <p class="text-xs text-tf-muted">Fund I LP Archetype Map</p>
+    </div>
+
+    <div class="flex-1 overflow-y-auto scrollbar-hide p-6 space-y-6">
+      <!-- Mission -->
+      <div>
+        <h3 class="text-xs font-semibold text-tf-accent uppercase tracking-wider mb-2">Mission</h3>
+        <p class="text-sm text-slate-300 leading-relaxed">
+          A $5M pre-seed fund investing in AI-native companies built by the founders the market underestimates: female, immigrant, and solo builders.
+        </p>
+      </div>
+
+      <!-- Fund Metrics -->
+      <div class="space-y-4">
+        <h3 class="text-xs font-semibold text-tf-accent uppercase tracking-wider">Fund Progress</h3>
+        
+        <div>
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-tf-muted">Target Close</span>
+            <span class="font-medium" id="displayTarget">$5.0M</span>
+          </div>
+          <div class="h-2 bg-tf-border rounded-full overflow-hidden">
+            <div id="progressBar" class="h-full bg-gradient-to-r from-tf-accent to-tf-accent2 w-0 transition-all duration-700"></div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="glass rounded-lg p-3">
+            <div class="text-xs text-tf-muted mb-1">Committed</div>
+            <div class="text-lg font-bold text-white" id="statCommitted">$0</div>
+          </div>
+          <div class="glass rounded-lg p-3">
+            <div class="text-xs text-tf-muted mb-1">First Close</div>
+            <div class="text-lg font-bold text-white" id="statFirstClose">$2.5M</div>
+          </div>
+          <div class="glass rounded-lg p-3">
+            <div class="text-xs text-tf-muted mb-1">LPs Active</div>
+            <div class="text-lg font-bold text-white" id="statLPs">0</div>
+          </div>
+          <div class="glass rounded-lg p-3">
+            <div class="text-xs text-tf-muted mb-1">Conversations</div>
+            <div class="text-lg font-bold text-white" id="statConversations">0</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Filters -->
+      <div>
+        <h3 class="text-xs font-semibold text-tf-accent uppercase tracking-wider mb-3">Quick Filters</h3>
+        <div class="space-y-2">
+          <button onclick="filterArchetypes('all')" class="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-tf-card transition-colors bg-tf-card border border-tf-border text-white" id="filter-all">All Archetypes</button>
+          <button onclick="filterArchetypes('committed')" class="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-tf-card transition-colors text-tf-muted" id="filter-committed">Committed</button>
+          <button onclick="filterArchetypes('high')" class="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-tf-card transition-colors text-tf-muted" id="filter-high">High Priority</button>
+          <button onclick="filterArchetypes('meeting')" class="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-tf-card transition-colors text-tf-muted" id="filter-meeting">In Meetings</button>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="pt-4 border-t border-tf-border space-y-2">
+        <button onclick="exportData()" class="w-full px-3 py-2 rounded-lg text-xs font-medium border border-tf-border hover:bg-tf-card transition-colors text-tf-muted">Export JSON Backup</button>
+        <label class="w-full px-3 py-2 rounded-lg text-xs font-medium border border-tf-border hover:bg-tf-card transition-colors text-tf-muted block text-center cursor-pointer">
+          Import Backup
+          <input type="file" class="hidden" onchange="importData(this)" accept=".json">
+        </label>
       </div>
     </div>
-  `).join('');
-}
+  </aside>
 
-function openArchetype(id){
-  activeId=id;
-  const a=ARCHETYPES.find(x=>x.id===id);
-  document.querySelectorAll('.a-card,.sb-nav-item').forEach(el=>el.classList.remove('active'));
-  document.getElementById('card-'+id).classList.add('active');
-  document.getElementById('nav-'+id).classList.add('active');
-  const tag=document.getElementById('p-tag');
-  tag.textContent=a.cat;
-  tag.style.cssText=`background:${a.colorDim};color:${a.color};display:inline-block;font-size:.58rem;text-transform:uppercase;letter-spacing:.1em;padding:2px 8px;border-radius:5px;margin-bottom:9px;`;
-  document.getElementById('p-title').textContent=a.title;
-  document.getElementById('p-desc').textContent=a.desc;
-  const noteEl=document.getElementById('p-note');
-  noteEl.innerHTML=a.note?`
-    <div class="panel-note">
-      <div class="panel-note-label">Strategic Note</div>
-      <div class="panel-note-text">${a.note}</div>
-    </div>`:'';
-  renderLPList(id);
-  document.getElementById('panel').classList.add('open');
-}
-
-function renderLPList(id){
-  const lps=getLPs(id);
-  const el=document.getElementById('lp-list');
-  if(!lps.length){
-    el.innerHTML='<div class="lp-empty">No LP contacts yet.<br>Add your first below.</div>';
-    return;
-  }
-  el.innerHTML=lps.map((lp,i)=>`
-    <div class="lp-item">
-      <div class="lp-avatar">${lp.name.charAt(0).toUpperCase()}</div>
-      <div class="lp-info">
-        <div class="lp-name">${lp.name}${lp.org?' · '+lp.org:''}</div>
-        <div class="lp-sub">${lp.contact||STATUS[lp.status].label}</div>
+  <!-- MAIN CONTENT -->
+  <main class="flex-1 flex flex-col h-full relative overflow-hidden">
+    <!-- Top Bar -->
+    <header class="h-16 border-b border-tf-border bg-tf-panel/80 backdrop-blur flex items-center justify-between px-6 shrink-0 z-10">
+      <div class="flex items-center gap-4">
+        <div class="relative">
+          <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-tf-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+          <input type="text" id="searchInput" placeholder="Search archetypes or contacts..." 
+            class="pl-10 pr-4 py-2 bg-tf-bg border border-tf-border rounded-lg text-sm focus:outline-none focus:border-tf-accent w-64 text-slate-200 placeholder-slate-500">
+        </div>
+        <div class="flex bg-tf-card rounded-lg p-1 border border-tf-border">
+          <button onclick="setView('grid')" id="btn-grid" class="px-3 py-1.5 rounded-md text-xs font-medium bg-tf-accent text-tf-bg transition-all">Grid</button>
+          <button onclick="setView('map')" id="btn-map" class="px-3 py-1.5 rounded-md text-xs font-medium text-tf-muted hover:text-white transition-all">Constellation</button>
+        </div>
       </div>
-      <div class="lp-status-dot" title="${STATUS[lp.status].label}" style="background:${STATUS[lp.status].color}"></div>
-      <button class="lp-del" onclick="delLP(${id},${i})" title="Remove">✕</button>
+      <div class="flex items-center gap-3">
+        <span class="text-xs text-tf-muted" id="totalArchetypes">20 Archetypes</span>
+        <button onclick="openMetricsModal()" class="text-xs px-3 py-1.5 rounded-lg border border-tf-border hover:bg-tf-card text-tf-muted transition-colors">Edit Metrics</button>
+      </div>
+    </header>
+
+    <!-- Content Area -->
+    <div id="contentArea" class="flex-1 overflow-y-auto p-6 relative">
+      <!-- Grid View -->
+      <div id="gridView" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 max-w-7xl mx-auto"></div>
+      
+      <!-- Map View -->
+      <div id="mapView" class="hidden w-full h-full relative">
+        <svg id="constellationSvg" class="w-full h-full absolute inset-0 pointer-events-none"></svg>
+        <div id="mapNodes" class="relative w-full h-full"></div>
+        <div class="absolute bottom-6 left-6 glass px-4 py-3 rounded-lg max-w-xs">
+          <p class="text-xs text-tf-muted">Drag nodes to rearrange. Click to view archetype details. The central node is your highest-conviction anchor.</p>
+        </div>
+      </div>
     </div>
-  `).join('');
-}
+  </main>
 
-function addLP(){
-  if(!activeId)return;
-  const name=document.getElementById('f-name').value.trim();
-  if(!name){document.getElementById('f-name').focus();return;}
-  if(!lpData[activeId])lpData[activeId]=[];
-  lpData[activeId].push({
-    name,
-    org:document.getElementById('f-org').value.trim(),
-    contact:document.getElementById('f-contact').value.trim(),
-    status:document.getElementById('f-status').value,
-    added:new Date().toISOString()
-  });
-  save();
-  ['f-name','f-org','f-contact'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('f-status').value='prospect';
-  renderLPList(activeId);
-}
+  <!-- ARCHETYPE DETAIL MODAL -->
+  <div id="archetypeModal" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeModal()"></div>
+    <div class="absolute right-0 top-0 h-full w-full max-w-2xl bg-tf-panel border-l border-tf-border shadow-2xl transform transition-transform duration-300 translate-x-full" id="modalPanel">
+      <div class="h-full flex flex-col">
+        <div class="p-6 border-b border-tf-border flex items-start justify-between">
+          <div>
+            <div class="flex items-center gap-2 mb-2">
+              <span id="modalSource" class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded bg-tf-card border border-tf-border text-tf-muted"></span>
+              <span id="modalAnchor" class="hidden text-[10px] uppercase tracking-wider px-2 py-0.5 rounded bg-tf-accent/20 text-tf-accent border border-tf-accent/30">Anchor LP</span>
+            </div>
+            <h2 id="modalTitle" class="text-2xl font-bold text-white"></h2>
+          </div>
+          <button onclick="closeModal()" class="p-2 hover:bg-tf-card rounded-lg transition-colors">
+            <svg class="w-5 h-5 text-tf-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+        </div>
+        
+        <div class="flex-1 overflow-y-auto p-6 space-y-6">
+          <div>
+            <h4 class="text-xs font-semibold text-tf-accent uppercase tracking-wider mb-2">Profile</h4>
+            <p id="modalDesc" class="text-sm text-slate-300 leading-relaxed whitespace-pre-line"></p>
+          </div>
 
-function delLP(archetypeId,idx){
-  lpData[archetypeId].splice(idx,1);
-  save();
-  renderLPList(archetypeId);
-}
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <h4 class="text-xs font-semibold text-tf-accent uppercase tracking-wider">Contacts</h4>
+              <button onclick="openContactForm()" class="text-xs px-3 py-1.5 rounded-lg bg-tf-accent text-tf-bg font-medium hover:opacity-90 transition-opacity">+ Add Contact</button>
+            </div>
+            <div id="contactsList" class="space-y-2"></div>
+          </div>
 
-function closePanel(){
-  document.getElementById('panel').classList.remove('open');
-  document.querySelectorAll('.a-card,.sb-nav-item').forEach(el=>el.classList.remove('active'));
-  activeId=null;
-}
+          <div>
+            <h4 class="text-xs font-semibold text-tf-accent uppercase tracking-wider mb-2">Notes</h4>
+            <textarea id="archetypeNotes" onchange="saveNotes()" class="w-full bg-tf-bg border border-tf-border rounded-lg p-3 text-sm text-slate-300 focus:outline-none focus:border-tf-accent resize-none h-24" placeholder="Add strategy notes for this archetype..."></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-function exportJSON(){
-  const out={fund:'Timefull Capital Fund I',gp:'Angelica Carrillo',exported:new Date().toISOString(),lps:{}};
-  ARCHETYPES.forEach(a=>{const l=getLPs(a.id);if(l.length)out.lps[a.title]=l;});
-  const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});
-  const url=URL.createObjectURL(blob);
-  const link=document.createElement('a');
-  link.href=url;link.download='timefull-lps.json';link.click();
-  URL.revokeObjectURL(url);
-}
+  <!-- ADD/EDIT CONTACT MODAL -->
+  <div id="contactModal" class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeContactModal()"></div>
+    <div class="relative bg-tf-panel border border-tf-border rounded-xl shadow-2xl w-full max-w-md p-6 fade-in">
+      <h3 class="text-lg font-bold mb-4" id="contactModalTitle">Add Contact</h3>
+      <form id="contactForm" onsubmit="saveContact(event)" class="space-y-3">
+        <input type="hidden" id="contactId">
+        <div>
+          <label class="block text-xs text-tf-muted mb-1">Name</label>
+          <input type="text" id="cName" required class="w-full bg-tf-bg border border-tf-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-tf-accent text-white">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs text-tf-muted mb-1">Organization</label>
+            <input type="text" id="cOrg" class="w-full bg-tf-bg border border-tf-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-tf-accent text-white">
+          </div>
+          <div>
+            <label class="block text-xs text-tf-muted mb-1">Role</label>
+            <input type="text" id="cRole" class="w-full bg-tf-bg border border-tf-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-tf-accent text-white">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs text-tf-muted mb-1">Email</label>
+            <input type="email" id="cEmail" class="w-full bg-tf-bg border border-tf-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-tf-accent text-white">
+          </div>
+          <div>
+            <label class="block text-xs text-tf-muted mb-1">Phone</label>
+            <input type="tel" id="cPhone" class="w-full bg-tf-bg border border-tf-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-tf-accent text-white">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs text-tf-muted mb-1">Status</label>
+            <select id="cStatus" class="w-full bg-tf-bg border border-tf-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-tf-accent text-white">
+              <option>Research</option>
+              <option>Outreach</option>
+              <option>Meeting Scheduled</option>
+              <option>Due Diligence</option>
+              <option>Committed</option>
+              <option>Closed</option>
+              <option>Passed</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs text-tf-muted mb-1">Priority</label>
+            <select id="cPriority" class="w-full bg-tf-bg border border-tf-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-tf-accent text-white">
+              <option>Low</option>
+              <option>Medium</option>
+              <option>High</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs text-tf-muted mb-1">LinkedIn / URL</label>
+          <input type="url" id="cLinkedin" class="w-full bg-tf-bg border border-tf-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-tf-accent text-white">
+        </div>
+        <div>
+          <label class="block text-xs text-tf-muted mb-1">Notes</label>
+          <textarea id="cNotes" class="w-full bg-tf-bg border border-tf-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-tf-accent text-white h-16 resize-none"></textarea>
+        </div>
+        <div class="flex gap-2 pt-2">
+          <button type="button" onclick="closeContactModal()" class="flex-1 px-4 py-2 rounded-lg border border-tf-border text-sm hover:bg-tf-card transition-colors">Cancel</button>
+          <button type="submit" class="flex-1 px-4 py-2 rounded-lg bg-tf-accent text-tf-bg font-medium text-sm hover:opacity-90 transition-opacity">Save Contact</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-load();renderNav();renderGrid();updateStats();
-</script>
+  <!-- EDIT METRICS MODAL -->
+  <div id="metricsModal" class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeMetricsModal()"></div>
+    <div class="relative bg-tf-panel border border-tf-border rounded-xl shadow-2xl w-full max-w-sm p-6 fade-in">
+      <h3 class="text-lg font-bold mb-4">Edit Fund Metrics</h3>
+      <form onsubmit="saveMetrics(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs text-tf-muted mb-1">Target Close ($)</label>
+          <input type="number" id="mTarget" class="w-full bg-tf-bg border border-tf-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-tf-accent text-white">
+        </div>
+        <div>
+          <label class="block text-xs text-tf-muted mb-1">First Close Target ($)</label>
+          <input type="number" id="mFirst" class="w-full bg-tf-bg border border-tf-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-tf-accent text-white">
+        </div>
+        <div>
+          <label class="block text-xs text-tf-muted mb-1">Currently Committed ($)</label>
+          <input type="number" id="mCommitted" class="w-full bg-tf-bg border border-tf-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-tf-accent text-white">
+        </div>
+        <div class="flex gap-2 pt-2">
+          <button type="button" onclick="closeMetricsModal()" class="flex-1 px-4 py-2 rounded-lg border border-tf-border text-sm hover:bg-tf-card transition-colors">Cancel</button>
+          <button type="submit" class="flex-1 px-4 py-2 rounded-lg bg-tf-accent text-tf-bg font-medium text-sm hover:opacity-90 transition-opacity">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // ─── DATA ───
+    const archetypes = [
+      {
+        id: 'gem-1',
+        source: 'Gemini',
+        title: 'The Emerging Manager Alpha-Seeker',
+        desc: 'High-net-worth individuals, angels, and family offices who specifically back Fund I and Fund II managers to capture the historical outperformance generated at the pre-seed.',
+        anchor: false,
+        tags: ['Emerging Manager', 'Pre-Seed']
+      },
+      {
+        id: 'gem-2',
+        source: 'Gemini',
+        title: 'The Arbitrage Investor',
+        desc: 'Financially driven LPs who view the 1% venture funding rate for female founders strictly as a pricing error and market inefficiency that offers lower entry valuations and higher potential multiples on invested capital.',
+        anchor: false,
+        tags: ['Market Inefficiency', 'Female Founders']
+      },
+      {
+        id: 'gem-3',
+        source: 'Gemini',
+        title: 'The AI Pre-Seed Capitalizer',
+        desc: 'Investors who recognize AI as the dominant category capturing 50% of venture capital, but who want targeted exposure at the under-capitalized pre-seed entry point rather than competing in crowded Series A.',
+        anchor: false,
+        tags: ['AI-Native', 'Pre-Seed']
+      },
+      {
+        id: 'gem-4',
+        source: 'Gemini',
+        title: 'The Liquidity-Focused LP',
+        desc: 'Investors frustrated by traditional venture liquidity timelines (where only 50% of funds have DPI after 5 years) who are attracted to the structural potential for faster DPI created by highly capital-efficient, fast-scaling AI-native companies.',
+        anchor: false,
+        tags: ['DPI', 'Liquidity']
+      },
+      {
+        id: 'gem-5',
+        source: 'Gemini',
+        title: 'The Lean-Team Believer',
+        desc: 'LPs who understand that AI collapses the need for large early teams and view solo founders or two-person teams as a structural advantage that retains higher equity (37.5% at Series A) and aligns incentives.',
+        anchor: false,
+        tags: ['Solo Founder', 'Capital Efficiency']
+      },
+      {
+        id: 'gem-6',
+        source: 'Gemini',
+        title: 'The Cross-Border LatAm Operator',
+        desc: 'Angels and family offices within the US-Latin America corridor (e.g., Pacific Alliance, Startup Mexico) who want proprietary access to the high-performing immigrant founder demographic building within the US.',
+        anchor: false,
+        tags: ['LatAm', 'Cross-Border']
+      },
+      {
+        id: 'gem-7',
+        source: 'Gemini',
+        title: 'The Sector Insider (Healthtech & Creator Economy)',
+        desc: 'Domain experts, former biotech operators, athletes, or influencers who intimately understand the AI disruption occurring specifically in healthcare diagnostics or creator monetization.',
+        anchor: false,
+        tags: ['Healthtech', 'Creator Economy']
+      },
+      {
+        id: 'gem-8',
+        source: 'Gemini',
+        title: 'The Network-Driven Backer',
+        desc: 'LPs closely tied to the Draper Venture Network, Singularity University, or UC Berkeley ecosystems who trust the GP\'s established track record, EIR background, and proprietary deal flow within these specific networks.',
+        anchor: false,
+        tags: ['Network', 'Draper']
+      },
+      {
+        id: 'gem-9',
+        source: 'Gemini',
+        title: 'The Underestimated Founder Champion',
+        desc: 'LPs aligned with established women-in-tech and diverse founder networks (such as SoGal or WiSci) who are actively seeking to deploy capital into highly efficient female and immigrant founders.',
+        anchor: false,
+        tags: ['Diversity', 'Gender-Lens']
+      },
+      {
+        id: 'ds-1',
+        source: 'DeepSeek',
+        title: 'Gender-Lens & Inclusive Capitalism LPs',
+        desc: 'High-net-worth individuals, family offices, and foundations actively allocating to close the gender funding gap. They see the 1% of VC to female-only founding teams as a structural mispricing of alpha. They invest in deliberate diversity as a return driver, not charity. Motivated by the data: lower entry valuations, less competition, higher potential multiples. ESG, impact, and thematic mandates align.',
+        anchor: false,
+        tags: ['Gender-Lens', 'Impact', 'ESG']
+      },
+      {
+        id: 'ds-2',
+        source: 'DeepSeek',
+        title: 'Latino / LatinX Diaspora Capital',
+        desc: 'US-based family offices and accredited individuals with Latin American roots seeking exposure to the LatAm-to-US immigrant founder corridor. They resonate with the GP\'s Peruvian-born, bilingual, bicultural identity and her network spanning Startup Mexico, Pacific Alliance, and the broader diaspora. They provide capital to capture overlooked talent flowing through cultural bridges that monolingual investors never see.',
+        anchor: false,
+        tags: ['Latino', 'Diaspora', 'Immigrant']
+      },
+      {
+        id: 'ds-3',
+        source: 'DeepSeek',
+        title: 'Emerging Manager Programmatic Allocators',
+        desc: 'Fund-of-funds, OCIOs, and LP platforms purpose-built to back first and second-time managers (e.g., Cendana, Sapphire Partners, Weathergage, Allocate, AngelList Access Fund). They underwrite sharp theses, authentic founder-market fit, and niche dominance. They value the data-backed market inefficiency argument, the $5M right-sized Fund I, and the clear path to Fund II scaling upon early proof.',
+        anchor: false,
+        tags: ['Fund-of-Funds', 'Emerging Manager']
+      },
+      {
+        id: 'ds-4',
+        source: 'DeepSeek',
+        title: 'AI-Native Tech Family Offices',
+        desc: 'Multi-generational family offices operated by principals who were early into software, cloud, or crypto. They understand the structural shift to AI-native building: 10–12x revenue per employee and compressed time-to-scale. They want pure-play pre-seed AI exposure in a fund that enters before the growth curve inflects, and they appreciate the capital efficiency thesis that implies cleaner cap tables and faster DPI.',
+        anchor: false,
+        tags: ['AI-Native', 'Family Office', 'Tech']
+      },
+      {
+        id: 'ds-5',
+        source: 'DeepSeek',
+        title: 'Women Decision-Maker Networks & CIOs',
+        desc: 'Female-led foundations, single-family offices with women CIOs, and women\'s investment collectives (e.g., Golden Seeds, SoGal Foundation LPs, Next Wave Impact). They back female GPs building differentiated track records. The GP\'s unusual career arc—CRISPR co-founder, Miss Universe Latina, angel investor, Draper EIR—creates a powerful rapport. They fund the person as much as the thesis.',
+        anchor: false,
+        tags: ['Women CIOs', 'Female GP', 'Networks']
+      },
+      {
+        id: 'ds-6',
+        source: 'DeepSeek',
+        title: 'Creator Economy & Sports-Connected Investors',
+        desc: 'Athletes, entertainment figures, creator-led family offices, and media executives who made wealth in the attention economy. They want ownership in the AI-native tooling that powers the next decade of creator monetization. The GP\'s creator ecosystem access (Miss Universe Latina, triathlete, angel in Ceremonia and Jaclyn Johnson) gives them conviction that she sources where VCs don\'t. Deal flow from this underserved vertical is their primary interest.',
+        anchor: false,
+        tags: ['Creator Economy', 'Sports', 'Entertainment']
+      },
+      {
+        id: 'ds-7',
+        source: 'DeepSeek',
+        title: 'Digital Health & Biotech-Adjacent LPs',
+        desc: 'Physicians, healthcare executives, and pharma-adjacent angels who understand that AI-native health and wellness is a generational opportunity. The GP\'s biotech background (CRISPR startup at NASA Ames, UC Berkeley life sciences network, Pisa Pharmaceutical leadership launching 78 products) signals deep domain fluency. They invest for access to pre-seed health AI that traditional life science VCs overlook.',
+        anchor: false,
+        tags: ['Healthtech', 'Biotech', 'Digital Health']
+      },
+      {
+        id: 'ds-8',
+        source: 'DeepSeek',
+        title: 'Survivor-Turned-Investor Operator LPs',
+        desc: 'Second-time founders, exited solo operators, and angel investors who value scar tissue. They invest in GPs who have lived startup failure, rebuilt, and then systematically trained 100+ founders to become seed-ready. The Ceremonia angel track record, the $500 Bitcoin conviction hold, and the honest story of taking cash over equity at Eden all prove pattern recognition forged by loss, not theory.',
+        anchor: false,
+        tags: ['Operator', 'Founder', 'Scar Tissue']
+      },
+      {
+        id: 'ds-9',
+        source: 'DeepSeek',
+        title: 'DPI-Liquidity Focused Family Offices',
+        desc: 'High-net-worth families frustrated by the 5–7 year wait for distributions in traditional venture. They are drawn to the data: only ~50% of VC funds have any DPI after 5 years, but AI-native capital efficiency and 2–3 year scale cycles structurally compress the timeline to potential secondary sales or acquisitions. They underwrite the fund\'s explicit focus on generating earlier markups as a solution to VC\'s liquidity problem.',
+        anchor: false,
+        tags: ['DPI', 'Liquidity', 'Family Office']
+      },
+      {
+        id: 'ds-10',
+        source: 'DeepSeek',
+        title: 'Draper Ecosystem & Singularity University Insiders',
+        desc: 'Alumni, mentors, and co-investors within the Tim Draper venture universe and Singularity University\'s global network. They back people they\'ve seen perform in those high-intensity, contrarian environments. The GP delivering the first profitable Draper University cohort in 4 years, combined with her Singularity University Google Scholarship at NASA Ames, makes her a known quantity. They invest to deepen network-sourced deal flow and support a proven operator.',
+        anchor: true,
+        tags: ['Draper', 'Singularity University', 'Network']
+      },
+      {
+        id: 'ds-11',
+        source: 'DeepSeek',
+        title: 'LatAm Cross-Border High-Net-Worth Investors',
+        desc: 'Wealth creators in Latin America (Peru, Mexico, Colombia, Chile) seeking US venture exposure with a cultural bridge. They may have been limited to local ecosystems or opaque foreign VC allocations. The GP\'s bicultural, native Spanish fluency, and deal flow from immigrant founders maintaining cross-border networks give them a transparent, trusted entry point into top-decile US pre-seed AI. They often co-invest or seek guidance on US market entry.',
+        anchor: false,
+        tags: ['LatAm', 'Cross-Border', 'HNW']
+      }
+    ];
+
+    // ─── STATE ───
+    let currentView = 'grid';
+    let activeFilter = 'all';
+    let currentArchetypeId = null;
+    let dragNode = null;
+
+    const defaultMetrics = { target: 5000000, firstClose: 2500000, committed: 0 };
+    let metrics = JSON.parse(localStorage.getItem('tf_metrics')) || defaultMetrics;
+    let contacts = JSON.parse(localStorage.getItem('tf_contacts')) || {};
+    let notes = JSON.parse(localStorage.getItem('tf_notes')) || {};
+
+    // ─── INIT ───
+    function init() {
+      renderGrid();
+      renderMap();
+      updateDashboard();
+      setupSearch();
+    }
+
+    // ─── RENDER GRID ───
+    function renderGrid() {
+      const grid = document.getElementById('gridView');
+      const filtered = getFilteredArchetypes();
+      grid.innerHTML = filtered.map(a => {
+        const contactList = contacts[a.id] || [];
+        const committedCount = contactList.filter(c => c.status === 'Committed' || c.status === 'Closed').length;
+        const highCount = contactList.filter(c => c.priority === 'High').length;
+        const statusColor = committedCount > 0 ? 'bg-tf-accent/20 text-tf-accent border-tf-accent/30' : highCount > 0 ? 'bg-tf-warning/20 text-tf-warning border-tf-warning/30' : 'bg-tf-card text-tf-muted border-tf-border';
+        
+        return `
+        <div onclick="openArchetype('${a.id}')" class="group glass rounded-xl p-5 cursor-pointer hover:border-tf-accent/50 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden ${a.anchor ? 'ring-1 ring-tf-accent/40 anchor-glow' : ''}">
+          ${a.anchor ? '<div class="absolute top-0 right-0 bg-tf-accent text-tf-bg text-[10px] font-bold px-2 py-1 rounded-bl-lg">ANCHOR LP</div>' : ''}
+          <div class="flex items-start justify-between mb-3">
+            <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded border ${a.source === 'DeepSeek' ? 'border-tf-accent2/30 text-tf-accent2' : 'border-tf-muted/30 text-tf-muted'}">${a.source}</span>
+            <span class="text-xs px-2 py-0.5 rounded-full border ${statusColor}">${contactList.length} contact${contactList.length !== 1 ? 's' : ''}</span>
+          </div>
+          <h3 class="text-base font-semibold text-white mb-2 group-hover:text-tf-accent transition-colors line-clamp-2">${a.title}</h3>
+          <p class="text-xs text-tf-muted line-clamp-3 mb-3 leading-relaxed">${a.desc}</p>
+          <div class="flex flex-wrap gap-1.5">
+            ${a.tags.map(t => `<span class="text-[10px] px-1.5 py-0.5 rounded bg-tf-bg border border-tf-border text-slate-400">${t}</span>`).join('')}
+          </div>
+        </div>`;
+      }).join('');
+      
+      document.getElementById('totalArchetypes').textContent = `${filtered.length} Archetype${filtered.length !== 1 ? 's' : ''}`;
+    }
+
+    // ─── RENDER MAP ───
+    function renderMap() {
+      const container = document.getElementById('mapNodes');
+      const svg = document.getElementById('constellationSvg');
+      const width = container.offsetWidth || 800;
+      const height = container.offsetHeight || 600;
+      const centerX = width / 2;
+      const centerY = height / 2;
+      
+      // Position nodes in a spiral
+      const nodes = archetypes.map((a, i) => {
+        const angle = (i / archetypes.length) * Math.PI * 2 - Math.PI / 2;
+        const radius = 180 + (i % 3) * 60;
+        return { ...a, x: centerX + Math.cos(angle) * radius, y: centerY + Math.sin(angle) * radius, angle };
+      });
+
+      // Draw lines to center
+      svg.innerHTML = nodes.map(n => `
+        <line x1="${centerX}" y1="${centerY}" x2="${n.x}" y2="${n.y}" class="${n.anchor ? 'node-active' : 'node-line'}" />
+      `).join('');
+
+      container.innerHTML = `
+        <div class="absolute transform -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer" style="left:${centerX}px;top:${centerY}px" onclick="openArchetype('ds-10')">
+          <div class="w-16 h-16 rounded-full bg-tf-accent flex items-center justify-center text-tf-bg font-bold text-xs shadow-lg shadow-tf-accent/20 anchor-glow">FUND I</div>
+          <div class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] text-tf-accent whitespace-nowrap font-medium">Draper Ecosystem Anchor</div>
+        </div>
+      ` + nodes.map(n => {
+        const contactList = contacts[n.id] || [];
+        const hasCommitted = contactList.some(c => c.status === 'Committed' || c.status === 'Closed');
+        return `
+        <div class="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group" style="left:${n.x}px;top:${n.y}px" onclick="openArchetype('${n.id}')">
+          <div class="w-10 h-10 rounded-full ${hasCommitted ? 'bg-tf-accent' : n.anchor ? 'bg-tf-accent2' : 'bg-tf-card border border-tf-border'} flex items-center justify-center text-xs font-bold ${hasCommitted || n.anchor ? 'text-tf-bg' : 'text-tf-muted'} shadow-lg transition-transform group-hover:scale-110">
+            ${n.title.split(' ').slice(0,2).map(w=>w[0]).join('').substring(0,2).toUpperCase()}
+          </div>
+          <div class="absolute top-12 left-1/2 -translate-x-1/2 text-[10px] text-slate-400 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity bg-tf-panel px-2 py-1 rounded border border-tf-border pointer-events-none z-20">${n.title}</div>
+        </div>`;
+      }).join('');
+    }
+
+    // ─── FILTERING ───
+    function getFilteredArchetypes() {
+      let list = archetypes;
+      const q = document.getElementById('searchInput').value.toLowerCase();
+      
+      if (q) {
+        list = list.filter(a => 
+          a.title.toLowerCase().includes(q) || 
+          a.desc.toLowerCase().includes(q) ||
+          (contacts[a.id] || []).some(c => 
+            c.name.toLowerCase().includes(q) || 
+            c.org.toLowerCase().includes(q)
+          )
+        );
+      }
+
+      if (activeFilter === 'committed') {
+        list = list.filter(a => (contacts[a.id] || []).some(c => c.status === 'Committed' || c.status === 'Closed'));
+      } else if (activeFilter === 'high') {
+        list = list.filter(a => (contacts[a.id] || []).some(c => c.priority === 'High'));
+      } else if (activeFilter === 'meeting') {
+        list = list.filter(a => (contacts[a.id] || []).some(c => c.status === 'Meeting Scheduled' || c.status === 'Due Diligence'));
+      }
+
+      return list;
+    }
+
+    function filterArchetypes(type) {
+      activeFilter = type;
+      document.querySelectorAll('[id^="filter-"]').forEach(btn => {
+        btn.classList.remove('bg-tf-card', 'border', 'border-tf-border', 'text-white');
+        btn.classList.add('text-tf-muted');
+      });
+      const activeBtn = document.getElementById(`filter-${type}`);
+      activeBtn.classList.remove('text-tf-muted');
+      activeBtn.classList.add('bg-tf-card', 'border', 'border-tf-border', 'text-white');
+      renderGrid();
+    }
+
+    function setupSearch() {
+      document.getElementById('searchInput').addEventListener('input', () => {
+        if (currentView === 'grid') renderGrid();
+      });
+    }
+
+    function setView(view) {
+      currentView = view;
+      document.getElementById('gridView').classList.toggle('hidden', view !== 'grid');
+      document.getElementById('mapView').classList.toggle('hidden', view !== 'map');
+      document.getElementById('btn-grid').className = view === 'grid' ? 'px-3 py-1.5 rounded-md text-xs font-medium bg-tf-accent text-tf-bg transition-all' : 'px-3 py-1.5 rounded-md text-xs font-medium text-tf-muted hover:text-white transition-all';
+      document.getElementById('btn-map').className = view === 'map' ? 'px-3 py-1.5 rounded-md text-xs font-medium bg-tf-accent text-tf-bg transition-all' : 'px-3 py-1.5 rounded-md text-xs font-medium text-tf-muted hover:text-white transition-all';
+      if (view === 'map') setTimeout(renderMap, 50);
+    }
+
+    // ─── MODAL ───
+    function openArchetype(id) {
+      currentArchetypeId = id;
+      const a = archetypes.find(x => x.id === id);
+      document.getElementById('modalTitle').textContent = a.title;
+      document.getElementById('modalDesc').textContent = a.desc;
+      document.getElementById('modalSource').textContent = a.source + ' Framework';
+      document.getElementById('modalAnchor').classList.toggle('hidden', !a.anchor);
+      document.getElementById('archetypeNotes').value = notes[id] || '';
+      renderContacts(id);
+      
+      const modal = document.getElementById('archetypeModal');
+      const panel = document.getElementById('modalPanel');
+      modal.classList.remove('hidden');
+      setTimeout(() => panel.classList.remove('translate-x-full'), 10);
+    }
+
+    function closeModal() {
+      const panel = document.getElementById('modalPanel');
+      panel.classList.add('translate-x-full');
+      setTimeout(() => document.getElementById('archetypeModal').classList.add('hidden'), 300);
+    }
+
+    // ─── CONTACTS ───
+    function renderContacts(archId) {
+      const list = contacts[archId] || [];
+      const container = document.getElementById('contactsList');
+      if (list.length === 0) {
+        container.innerHTML = `<div class="text-sm text-tf-muted italic border border-dashed border-tf-border rounded-lg p-4 text-center">No contacts yet. Add your first LP contact for this archetype.</div>`;
+        return;
+      }
+      container.innerHTML = list.map((c, idx) => {
+        const statusColors = {
+          'Research': 'bg-slate-700 text-slate-300',
+          'Outreach': 'bg-blue-900/40 text-blue-300',
+          'Meeting Scheduled': 'bg-purple-900/40 text-purple-300',
+          'Due Diligence': 'bg-orange-900/40 text-orange-300',
+          'Committed': 'bg-tf-accent/20 text-tf-accent',
+          'Closed': 'bg-tf-accent/30 text-tf-accent font-semibold',
+          'Passed': 'bg-red-900/20 text-red-400'
+        };
+        return `
+        <div class="glass rounded-lg p-4 group hover:border-tf-accent/30 transition-colors">
+          <div class="flex items-start justify-between mb-2">
+            <div>
+              <div class="font-medium text-white text-sm">${c.name}</div>
+              <div class="text-xs text-tf-muted">${c.role}${c.role && c.org ? ' @ ' : ''}${c.org}</div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] px-2 py-0.5 rounded-full ${statusColors[c.status] || 'bg-slate-700'}">${c.status}</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full border ${c.priority === 'High' ? 'border-tf-warning/50 text-tf-warning' : c.priority === 'Medium' ? 'border-tf-accent2/50 text-tf-accent2' : 'border-tf-border text-tf-muted'}">${c.priority}</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-3 text-xs text-tf-muted mb-2">
+            ${c.email ? `<a href="mailto:${c.email}" class="hover:text-tf-accent transition-colors">${c.email}</a>` : ''}
+            ${c.phone ? `<span>${c.phone}</span>` : ''}
+            ${c.linkedin ? `<a href="${c.linkedin}" target="_blank" class="hover:text-tf-accent transition-colors">LinkedIn ↗</a>` : ''}
+          </div>
+          ${c.notes ? `<div class="text-xs text-slate-400 mb-2 line-clamp-2">${c.notes}</div>` : ''}
+          <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button onclick="editContact(${idx})" class="text-[10px] px-2 py-1 rounded bg-tf-card border border-tf-border hover:border-tf-accent text-tf-muted hover:text-white transition-colors">Edit</button>
+            <button onclick="deleteContact(${idx})" class="text-[10px] px-2 py-1 rounded bg-tf-card border border-tf-border hover:border-tf-danger text-tf-muted hover:text-tf-danger transition-colors">Delete</button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function openContactForm() {
+      document.getElementById('contactModalTitle').textContent = 'Add Contact';
+      document.getElementById('contactForm').reset();
+      document.getElementById('contactId').value = '';
+      document.getElementById('contactModal').classList.remove('hidden');
+    }
+
+    function editContact(idx) {
+      const c = contacts[currentArchetypeId][idx];
+      document.getElementById('contactModalTitle').textContent = 'Edit Contact';
+      document.getElementById('contactId').value = idx;
+      document.getElementById('cName').value = c.name;
+      document.getElementById('cOrg').value = c.org || '';
+      document.getElementById('cRole').value = c.role || '';
+      document.getElementById('cEmail').value = c.email || '';
+      document.getElementById('cPhone').value = c.phone || '';
+      document.getElementById('cStatus').value = c.status;
+      document.getElementById('cPriority').value = c.priority;
+      document.getElementById('cLinkedin').value = c.linkedin || '';
+      document.getElementById('cNotes').value = c.notes || '';
+      document.getElementById('contactModal').classList.remove('hidden');
+    }
+
+    function saveContact(e) {
+      e.preventDefault();
+      const idx = document.getElementById('contactId').value;
+      const contact = {
+        name: document.getElementById('cName').value,
+        org: document.getElementById('cOrg').value,
+        role: document.getElementById('cRole').value,
+        email: document.getElementById('cEmail').value,
+        phone: document.getElementById('cPhone').value,
+        status: document.getElementById('cStatus').value,
+        priority: document.getElementById('cPriority').value,
+        linkedin: document.getElementById('cLinkedin').value,
+        notes: document.getElementById('cNotes').value
+      };
+      if (!contacts[currentArchetypeId]) contacts[currentArchetypeId] = [];
+      if (idx === '') {
+        contacts[currentArchetypeId].push(contact);
+      } else {
+        contacts[currentArchetypeId][parseInt(idx)] = contact;
+      }
+      localStorage.setItem('tf_contacts', JSON.stringify(contacts));
+      renderContacts(currentArchetypeId);
+      updateDashboard();
+      closeContactModal();
+      if (currentView === 'grid') renderGrid();
+    }
+
+    function deleteContact(idx) {
+      if (!confirm('Delete this contact?')) return;
+      contacts[currentArchetypeId].splice(idx, 1);
+      localStorage.setItem('tf_contacts', JSON.stringify(contacts));
+      renderContacts(currentArchetypeId);
+      updateDashboard();
+      if (currentView === 'grid') renderGrid();
+    }
+
+    function closeContactModal() {
+      document.getElementById('contactModal').classList.add('hidden');
+    }
+
+    function saveNotes() {
+      notes[currentArchetypeId] = document.getElementById('archetypeNotes').value;
+      localStorage.setItem('tf_notes', JSON.stringify(notes));
+    }
+
+    // ─── METRICS ───
+    function updateDashboard() {
+      document.getElementById('displayTarget').textContent = '$' + (metrics.target / 1000000).toFixed(1) + 'M';
+      document.getElementById('statFirstClose').textContent = '$' + (metrics.firstClose / 1000000).toFixed(1) + 'M';
+      document.getElementById('statCommitted').textContent = '$' + (metrics.committed / 1000000).toFixed(2) + 'M';
+      
+      const pct = Math.min((metrics.committed / metrics.target) * 100, 100);
+      document.getElementById('progressBar').style.width = pct + '%';
+      
+      let totalLPs = 0, conversations = 0;
+      Object.values(contacts).forEach(list => {
+        totalLPs += list.length;
+        conversations += list.filter(c => c.status !== 'Research').length;
+      });
+      document.getElementById('statLPs').textContent = totalLPs;
+      document.getElementById('statConversations').textContent = conversations;
+    }
+
+    function openMetricsModal() {
+      document.getElementById('mTarget').value = metrics.target;
+      document.getElementById('mFirst').value = metrics.firstClose;
+      document.getElementById('mCommitted').value = metrics.committed;
+      document.getElementById('metricsModal').classList.remove('hidden');
+    }
+
+    function saveMetrics(e) {
+      e.preventDefault();
+      metrics.target = parseInt(document.getElementById('mTarget').value) || 5000000;
+      metrics.firstClose = parseInt(document.getElementById('mFirst').value) || 2500000;
+      metrics.committed = parseInt(document.getElementById('mCommitted').value) || 0;
+      localStorage.setItem('tf_metrics', JSON.stringify(metrics));
+      updateDashboard();
+      closeMetricsModal();
+    }
+
+    function closeMetricsModal() {
+      document.getElementById('metricsModal').classList.add('hidden');
+    }
+
+    // ─── EXPORT / IMPORT ───
+    function exportData() {
+      const data = { metrics, contacts, notes, exportedAt: new Date().toISOString() };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `timefull-lp-map-backup-${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+    }
+
+    function importData(input) {
+      const file = input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (data.metrics) { metrics = data.metrics; localStorage.setItem('tf_metrics', JSON.stringify(metrics)); }
+          if (data.contacts) { contacts = data.contacts; localStorage.setItem('tf_contacts', JSON.stringify(contacts)); }
+          if (data.notes) { notes = data.notes; localStorage.setItem('tf_notes', JSON.stringify(notes)); }
+          updateDashboard();
+          renderGrid();
+          alert('Backup restored successfully.');
+        } catch (err) {
+          alert('Invalid backup file.');
+        }
+      };
+      reader.readAsText(file);
+      input.value = '';
+    }
+
+    // ─── START ───
+    window.addEventListener('resize', () => { if (currentView === 'map') renderMap(); });
+    init();
+  </script>
 </body>
 </html>
