@@ -43,12 +43,33 @@
     .anchor-glow { animation: pulse-glow 3s infinite; }
     .fade-in { animation: fadeIn 0.3s ease-out; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Mobile specific styles */
+    @media (max-width: 768px) {
+      .sidebar-hidden { transform: translateX(-100%); }
+      .sidebar-visible { transform: translateX(0); }
+      .mobile-header { display: flex !important; }
+      .desktop-header { display: none !important; }
+      .main-content-shifted { margin-left: 20rem; }
+    }
   </style>
 </head>
-<body class="font-sans antialiased h-screen overflow-hidden flex">
+<body class="font-sans antialiased h-screen overflow-hidden flex flex-col md:flex-row">
+
+  <!-- Mobile Header -->
+  <header class="mobile-header md:hidden h-16 border-b border-tf-border bg-tf-panel/80 backdrop-blur flex items-center justify-between px-4 shrink-0 z-30">
+    <button onclick="toggleSidebar()" class="p-2 -ml-2 text-tf-muted hover:text-white transition-colors">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+    </button>
+    <div class="flex items-center gap-2">
+      <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-tf-accent to-tf-accent2 flex items-center justify-center text-tf-bg font-bold text-xs">T</div>
+      <h1 class="text-base font-bold tracking-tight">Timefull Capital</h1>
+    </div>
+    <button onclick="openMetricsModal()" class="text-xs px-3 py-1.5 rounded-lg border border-tf-border hover:bg-tf-card text-tf-muted transition-colors">Edit</button>
+  </header>
 
   <!-- SIDEBAR DASHBOARD -->
-  <aside class="w-80 bg-tf-panel border-r border-tf-border flex flex-col h-full shrink-0 z-20">
+  <aside id="sidebar" class="w-80 bg-tf-panel border-r border-tf-border flex-col h-full shrink-0 z-20 fixed md:static inset-y-0 left-0 transition-transform duration-300 sidebar-hidden md:flex">
     <div class="p-6 border-b border-tf-border">
       <div class="flex items-center gap-3 mb-1">
         <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-tf-accent to-tf-accent2 flex items-center justify-center text-tf-bg font-bold text-sm">T</div>
@@ -124,8 +145,8 @@
 
   <!-- MAIN CONTENT -->
   <main class="flex-1 flex flex-col h-full relative overflow-hidden">
-    <!-- Top Bar -->
-    <header class="h-16 border-b border-tf-border bg-tf-panel/80 backdrop-blur flex items-center justify-between px-6 shrink-0 z-10">
+    <!-- Desktop Top Bar -->
+    <header class="desktop-header hidden md:flex h-16 border-b border-tf-border bg-tf-panel/80 backdrop-blur items-center justify-between px-6 shrink-0 z-10">
       <div class="flex items-center gap-4">
         <div class="relative">
           <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-tf-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
@@ -211,7 +232,7 @@
           <label class="block text-xs text-tf-muted mb-1">Name</label>
           <input type="text" id="cName" required class="w-full bg-tf-bg border border-tf-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-tf-accent text-white">
         </div>
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block text-xs text-tf-muted mb-1">Organization</label>
             <input type="text" id="cOrg" class="w-full bg-tf-bg border border-tf-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-tf-accent text-white">
@@ -221,7 +242,7 @@
             <input type="text" id="cRole" class="w-full bg-tf-bg border border-tf-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-tf-accent text-white">
           </div>
         </div>
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block text-xs text-tf-muted mb-1">Email</label>
             <input type="email" id="cEmail" class="w-full bg-tf-bg border border-tf-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-tf-accent text-white">
@@ -231,7 +252,7 @@
             <input type="tel" id="cPhone" class="w-full bg-tf-bg border border-tf-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-tf-accent text-white">
           </div>
         </div>
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block text-xs text-tf-muted mb-1">Status</label>
             <select id="cStatus" class="w-full bg-tf-bg border border-tf-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-tf-accent text-white">
@@ -261,7 +282,7 @@
           <label class="block text-xs text-tf-muted mb-1">Notes</label>
           <textarea id="cNotes" class="w-full bg-tf-bg border border-tf-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-tf-accent text-white h-16 resize-none"></textarea>
         </div>
-        <div class="flex gap-2 pt-2">
+        <div class="flex flex-col sm:flex-row gap-2 pt-2">
           <button type="button" onclick="closeContactModal()" class="flex-1 px-4 py-2 rounded-lg border border-tf-border text-sm hover:bg-tf-card transition-colors">Cancel</button>
           <button type="submit" class="flex-1 px-4 py-2 rounded-lg bg-tf-accent text-tf-bg font-medium text-sm hover:opacity-90 transition-opacity">Save Contact</button>
         </div>
@@ -287,7 +308,7 @@
           <label class="block text-xs text-tf-muted mb-1">Currently Committed ($)</label>
           <input type="number" id="mCommitted" class="w-full bg-tf-bg border border-tf-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-tf-accent text-white">
         </div>
-        <div class="flex gap-2 pt-2">
+        <div class="flex flex-col sm:flex-row gap-2 pt-2">
           <button type="button" onclick="closeMetricsModal()" class="flex-1 px-4 py-2 rounded-lg border border-tf-border text-sm hover:bg-tf-card transition-colors">Cancel</button>
           <button type="submit" class="flex-1 px-4 py-2 rounded-lg bg-tf-accent text-tf-bg font-medium text-sm hover:opacity-90 transition-opacity">Save</button>
         </div>
@@ -465,6 +486,7 @@
     let activeFilter = 'all';
     let currentArchetypeId = null;
     let dragNode = null;
+    let isSidebarOpen = false; // Added for mobile sidebar state
 
     const defaultMetrics = { target: 5000000, firstClose: 2500000, committed: 0 };
     let metrics = JSON.parse(localStorage.getItem('tf_metrics')) || defaultMetrics;
@@ -477,6 +499,23 @@
       renderMap();
       updateDashboard();
       setupSearch();
+      // Close sidebar on larger screens if it was left open in mobile
+      if (window.innerWidth >= 768 && isSidebarOpen) {
+        toggleSidebar();
+      }
+    }
+
+    // ─── MOBILE SIDEBAR TOGGLE ───
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      isSidebarOpen = !isSidebarOpen;
+      if (isSidebarOpen) {
+        sidebar.classList.remove('sidebar-hidden');
+        sidebar.classList.add('sidebar-visible');
+      } else {
+        sidebar.classList.remove('sidebar-visible');
+        sidebar.classList.add('sidebar-hidden');
+      }
     }
 
     // ─── RENDER GRID ───
@@ -615,6 +654,9 @@
       const panel = document.getElementById('modalPanel');
       modal.classList.remove('hidden');
       setTimeout(() => panel.classList.remove('translate-x-full'), 10);
+      if (window.innerWidth < 768 && isSidebarOpen) { // Close sidebar on mobile when opening a modal
+        toggleSidebar();
+      }
     }
 
     function closeModal() {
@@ -758,6 +800,9 @@
       document.getElementById('mFirst').value = metrics.firstClose;
       document.getElementById('mCommitted').value = metrics.committed;
       document.getElementById('metricsModal').classList.remove('hidden');
+      if (window.innerWidth < 768 && isSidebarOpen) { // Close sidebar on mobile when opening a modal
+        toggleSidebar();
+      }
     }
 
     function saveMetrics(e) {
@@ -776,7 +821,7 @@
 
     // ─── EXPORT / IMPORT ───
     function exportData() {
-      const data = { metrics, contacts, notes, exportedAt: new Date().toISOString() };
+      const data = { metrics, contacts, notes, archetypes, exportedAt: new Date().toISOString() };
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -795,6 +840,8 @@
           if (data.metrics) { metrics = data.metrics; localStorage.setItem('tf_metrics', JSON.stringify(metrics)); }
           if (data.contacts) { contacts = data.contacts; localStorage.setItem('tf_contacts', JSON.stringify(contacts)); }
           if (data.notes) { notes = data.notes; localStorage.setItem('tf_notes', JSON.stringify(notes)); }
+          // If you ever want to allow importing archetypes too:
+          // if (data.archetypes) { archetypes = data.archetypes; } 
           updateDashboard();
           renderGrid();
           alert('Backup restored successfully.');
@@ -807,7 +854,13 @@
     }
 
     // ─── START ───
-    window.addEventListener('resize', () => { if (currentView === 'map') renderMap(); });
+    window.addEventListener('resize', () => { 
+      if (currentView === 'map') renderMap(); 
+      // Ensure sidebar state is correct on resize for desktop
+      if (window.innerWidth >= 768 && isSidebarOpen) {
+        toggleSidebar(); // This will close it if open, but ensure visibility class for desktop
+      }
+    });
     init();
   </script>
 </body>
