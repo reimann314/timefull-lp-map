@@ -58,6 +58,12 @@
 </head>
 <body class="font-sans antialiased h-screen overflow-hidden flex flex-col md:flex-row text-tf-text">
 
+  <!-- ERROR BANNER -->
+  <div id="db-error-banner" class="hidden fixed top-0 left-0 w-full bg-red-600 text-white text-xs font-bold py-2 px-4 text-center z-[100] shadow-lg">
+    Database Connection Blocked by Supabase (Likely RLS is ON). Running in "Offline Preview Mode". Changes will not save to cloud until fixed.
+    <button onclick="document.getElementById('db-error-banner').classList.add('hidden')" class="ml-4 underline hover:text-gray-200">Dismiss</button>
+  </div>
+
   <!-- Mobile Header -->
   <header class="mobile-header md:hidden h-16 border-b border-tf-border bg-tf-panel/80 backdrop-blur flex items-center justify-between px-4 shrink-0 z-30">
     <button onclick="toggleSidebar()" class="p-2 -ml-2 text-tf-muted hover:text-tf-text transition-colors">
@@ -152,7 +158,7 @@
       </div>
     </header>
 
-    <div id="contentArea" class="flex-1 overflow-y-auto p-6 relative">
+    <div id="contentArea" class="flex-1 overflow-y-auto p-6 relative pt-12 md:pt-6">
       <div id="gridView" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 max-w-7xl mx-auto"></div>
       
       <div id="mapView" class="hidden w-full h-full relative">
@@ -307,8 +313,8 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9rZHNtanhibGx5ZWZicW5xYXRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgzMzYxMzQsImV4cCI6MjA5MzkxMjEzNH0.Q0FDGEYe-lowAqTd0_vdBqb9xxuCrb7DipUE4pWWjiY'; 
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // ─── YOUR ORIGINAL HARDCODED DATA TO "AUTO-SEED" SUPABASE ───
-    const initialArchetypes = [
+    // ─── HARDCODED DATA (FAILSAFE) ───
+    const FAILSAFE_ARCHETYPES = [
       { id: 'gem-1', title: 'The Emerging Manager Alpha-Seeker', desc: 'High-net-worth individuals, angels, and family offices who specifically back Fund I and Fund II managers to capture the historical outperformance generated at the pre-seed.', anchor: false, tags: ['Emerging Manager', 'Pre-Seed'] },
       { id: 'gem-2', title: 'The Arbitrage Investor', desc: 'Financially driven LPs who view the 1% venture funding rate for female founders strictly as a pricing error and market inefficiency that offers lower entry valuations and higher potential multiples on invested capital.', anchor: false, tags: ['Market Inefficiency', 'Female Founders'] },
       { id: 'gem-3', title: 'The AI Pre-Seed Capitalizer', desc: 'Investors who recognize AI as the dominant category capturing 50% of venture capital, but who want targeted exposure at the under-capitalized pre-seed entry point rather than competing in crowded Series A.', anchor: false, tags: ['AI-Native', 'Pre-Seed'] },
@@ -333,7 +339,7 @@
 
     // ─── STATE ───
     let archetypes = [];
-    let metrics = {};
+    let metrics = { target: 5000000, firstClose: 2500000, committed: 0 };
     let contacts = {}; 
     let notes = {}; 
     let currentView = 'grid';
@@ -341,6 +347,7 @@
     let currentArchetypeId = null;
     let dragNode = null;
     let isSidebarOpen = false;
+    let isOfflineMode = false; // Tracks if Supabase is blocked
 
     // ─── INIT ───
     async function init() {
@@ -349,64 +356,70 @@
       renderMap();
       updateDashboard();
       setupSearch();
-      setupSupabaseRealtime();
+      if (!isOfflineMode) {
+        setupSupabaseRealtime();
+      }
       if (window.innerWidth >= 768 && isSidebarOpen) toggleSidebar();
     }
 
-    // ─── SUPABASE DATA LOADING & AUTO-SEEDING ───
+    // ─── BULLETPROOF DATA LOADING ───
     async function loadInitialData() {
-        // 1. Load Archetypes
-        const { data: archetypesData, error: archetypesError } = await db.from('archetypes').select('*');
-        if (archetypesError) { 
-            console.error('Error loading archetypes:', archetypesError); 
-        } else if (archetypesData && archetypesData.length > 0) {
-            archetypes = archetypesData; 
-        } else {
-            // IF EMPTY: Auto-seed the database with the hardcoded array
-            console.log("Supabase 'archetypes' table is empty. Auto-uploading initial data...");
+        try {
+            // 1. Try to load Archetypes from Supabase
+            const { data: archetypesData, error: archetypesError } = await db.from('archetypes').select('*');
             
-            // Give them random initial X, Y coordinates so they don't stack on top of each other
-            initialArchetypes.forEach(a => {
-                a.x = Math.random() * (window.innerWidth > 800 ? 800 : window.innerWidth);
-                a.y = Math.random() * (window.innerHeight > 600 ? 600 : window.innerHeight);
-            });
+            if (archetypesError) throw archetypesError; // This triggers the catch block if RLS blocks us
 
-            const { error: insertError } = await db.from('archetypes').insert(initialArchetypes);
-            if (insertError) {
-                console.error("Failed to auto-upload initial archetypes:", insertError);
+            if (archetypesData && archetypesData.length > 0) {
+                archetypes = archetypesData; 
             } else {
+                // Supabase is working but empty. Let's auto-seed.
+                console.log("Supabase is empty. Attempting auto-upload...");
+                initialArchetypes.forEach(a => {
+                    a.x = Math.random() * 800;
+                    a.y = Math.random() * 600;
+                });
+                const { error: insertError } = await db.from('archetypes').insert(initialArchetypes);
+                if (insertError) throw insertError;
                 archetypes = initialArchetypes;
-                console.log("Successfully seeded database!");
             }
-        }
 
-        // 2. Load Metrics
-        const { data: metricsData, error: metricsError } = await db.from('metrics').select('*').single(); 
-        if (metricsError && metricsError.code !== 'PGRST116') { 
-            console.error('Error loading metrics:', metricsError);
-        } else {
-            metrics = metricsData || { target: 5000000, firstClose: 2500000, committed: 0 };
-        }
+            // Load Metrics
+            const { data: metricsData } = await db.from('metrics').select('*').single(); 
+            if (metricsData) metrics = metricsData;
 
-        // 3. Load Contacts
-        const { data: contactsData, error: contactsError } = await db.from('contacts').select('*');
-        if (contactsError) { console.error('Error loading contacts:', contactsError); }
-        else if (contactsData) {
-            contacts = contactsData.reduce((acc, contact) => {
-                if (!acc[contact.archetypeId]) acc[contact.archetypeId] = [];
-                acc[contact.archetypeId].push(contact);
-                return acc;
-            }, {});
-        }
+            // Load Contacts
+            const { data: contactsData } = await db.from('contacts').select('*');
+            if (contactsData) {
+                contacts = contactsData.reduce((acc, contact) => {
+                    if (!acc[contact.archetypeId]) acc[contact.archetypeId] = [];
+                    acc[contact.archetypeId].push(contact);
+                    return acc;
+                }, {});
+            }
 
-        // 4. Load Notes
-        const { data: notesData, error: notesError } = await db.from('notes').select('*');
-        if (notesError) { console.error('Error loading notes:', notesError); }
-        else if (notesData) {
-            notes = notesData.reduce((acc, note) => {
-                acc[note.archetypeId] = note.content;
-                return acc;
-            }, {});
+            // Load Notes
+            const { data: notesData } = await db.from('notes').select('*');
+            if (notesData) {
+                notes = notesData.reduce((acc, note) => {
+                    acc[note.archetypeId] = note.content;
+                    return acc;
+                }, {});
+            }
+
+        } catch (error) {
+            // 🚨 IF ANYTHING FAILS, RUN THIS FAILSAFE CODE 🚨
+            console.error("SUPABASE BLOCKED THE CONNECTION:", error);
+            document.getElementById('db-error-banner').classList.remove('hidden');
+            
+            // Force the app to load the local data so the screen isn't blank
+            isOfflineMode = true;
+            archetypes = FAILSAFE_ARCHETYPES;
+            
+            // Re-map localstorage if it exists for offline mode
+            metrics = JSON.parse(localStorage.getItem('tf_metrics')) || metrics;
+            contacts = JSON.parse(localStorage.getItem('tf_contacts')) || {};
+            notes = JSON.parse(localStorage.getItem('tf_notes')) || {};
         }
     }
 
@@ -614,8 +627,10 @@
                     archetype.x = currentX;
                     archetype.y = currentY;
 
-                    const { error } = await db.from('archetypes').update({ x: currentX, y: currentY }).eq('id', archetypeId);
-                    if (error) console.error('Error saving node position:', error);
+                    if (!isOfflineMode) {
+                        const { error } = await db.from('archetypes').update({ x: currentX, y: currentY }).eq('id', archetypeId);
+                        if (error) console.error('Error saving node position:', error);
+                    }
                 }
             }
             dragNode = null;
@@ -770,8 +785,8 @@
           </div>
           ${c.notes ? `<div class="text-xs text-tf-muted mb-2 line-clamp-2">${c.notes}</div>` : ''}
           <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button onclick="editContact('${c.id}')" class="text-[10px] px-2 py-1 rounded bg-tf-card border border-tf-border hover:border-tf-accent text-tf-muted hover:text-tf-text transition-colors">Edit</button>
-            <button onclick="deleteContact('${c.id}')" class="text-[10px] px-2 py-1 rounded bg-tf-card border border-tf-border hover:border-tf-danger text-tf-muted hover:text-tf-danger transition-colors">Delete</button>
+            <button onclick="editContact('${c.id || c.name}')" class="text-[10px] px-2 py-1 rounded bg-tf-card border border-tf-border hover:border-tf-accent text-tf-muted hover:text-tf-text transition-colors">Edit</button>
+            <button onclick="deleteContact('${c.id || c.name}')" class="text-[10px] px-2 py-1 rounded bg-tf-card border border-tf-border hover:border-tf-danger text-tf-muted hover:text-tf-danger transition-colors">Delete</button>
           </div>
         </div>`;
       }).join('');
@@ -786,11 +801,11 @@
     }
 
     function editContact(contactId) {
-      const c = Object.values(contacts).flat().find(contact => contact.id == contactId); 
+      const c = Object.values(contacts).flat().find(contact => contact.id == contactId || contact.name == contactId); 
       if (!c) return;
 
       document.getElementById('contactModalTitle').textContent = 'Edit Contact';
-      document.getElementById('contactId').value = c.id;
+      document.getElementById('contactId').value = c.id || '';
       document.getElementById('contactArchetypeId').value = c.archetypeId;
       document.getElementById('cName').value = c.name;
       document.getElementById('cOrg').value = c.org || '';
@@ -822,6 +837,23 @@
         archetypeId: archetypeId 
       };
 
+      if (isOfflineMode) {
+          if (!contacts[archetypeId]) contacts[archetypeId] = [];
+          if (contactId) {
+              const idx = contacts[archetypeId].findIndex(c => c.id == contactId || c.name == contactData.name);
+              contacts[archetypeId][idx] = contactData;
+          } else {
+              contactData.id = Date.now().toString(); // fake id
+              contacts[archetypeId].push(contactData);
+          }
+          localStorage.setItem('tf_contacts', JSON.stringify(contacts));
+          renderContacts(currentArchetypeId);
+          updateDashboard();
+          if (currentView === 'grid') renderGrid();
+          closeContactModal();
+          return;
+      }
+
       let error;
       if (contactId) {
         ({ error } = await db.from('contacts').update(contactData).eq('id', contactId));
@@ -844,6 +876,15 @@
     async function deleteContact(contactId) {
       if (!confirm('Delete this contact?')) return;
       
+      if (isOfflineMode) {
+          contacts[currentArchetypeId] = contacts[currentArchetypeId].filter(c => c.id != contactId && c.name != contactId);
+          localStorage.setItem('tf_contacts', JSON.stringify(contacts));
+          renderContacts(currentArchetypeId);
+          updateDashboard();
+          if (currentView === 'grid') renderGrid();
+          return;
+      }
+
       const { error } = await db.from('contacts').delete().eq('id', contactId);
 
       if (error) {
@@ -864,6 +905,12 @@
     async function saveNotes() {
       const archetypeId = currentArchetypeId;
       const content = document.getElementById('archetypeNotes').value;
+
+      if (isOfflineMode) {
+          notes[archetypeId] = content;
+          localStorage.setItem('tf_notes', JSON.stringify(notes));
+          return;
+      }
 
       const { data: existingNote, error: fetchError } = await db.from('notes').select('id').eq('archetypeId', archetypeId).single();
 
@@ -910,6 +957,14 @@
         firstClose: parseInt(document.getElementById('mFirst').value) || 2500000,
         committed: parseInt(document.getElementById('mCommitted').value) || 0
       };
+
+      if (isOfflineMode) {
+          metrics = updatedMetrics;
+          localStorage.setItem('tf_metrics', JSON.stringify(metrics));
+          updateDashboard();
+          closeMetricsModal();
+          return;
+      }
 
       const { data: existingMetrics, error: fetchError } = await db.from('metrics').select('id').single();
 
